@@ -1084,7 +1084,7 @@ Class doControl extends commonControl
         {
             if (isset($_POST['signature']))
             {
-                $signature = Filter::in($_POST['signature']);
+                $signature = Filter::topicIn($_POST['signature']);
                 
                 if (empty($signature))
                 {
