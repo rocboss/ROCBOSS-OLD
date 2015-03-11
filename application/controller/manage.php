@@ -66,6 +66,11 @@ Class manageControl extends commonControl
         
         if (isset($_POST['sitename'], $_POST['keywords'], $_POST['description'], $_POST['register'], $_POST['topic'], $_POST['reply'], $_POST['praise'], $_POST['whisper'], $_POST['ROCKEY'], $_POST['ad']))
         {
+            if (!isset($_POST['hash']) || $_POST['hash'] != md5($_COOKIE['roc_secure']))
+            {
+                die('Deny Access!');
+            }
+            
             $sitename = Filter::in($_POST['sitename']);
             
             $keywords = Filter::in($_POST['keywords']);

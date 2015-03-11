@@ -105,6 +105,7 @@
             </table>
         </fieldset>
         <div class="form-submit">
+            <input type="hidden" name="hash" value="<!--{md5($_COOKIE['roc_secure'])}-->"/>
             <input type="submit" value="保存更改" class="btn btn-primary btn-sm"/>
         </div>
     </form>
