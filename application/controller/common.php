@@ -5,11 +5,14 @@ class commonControl
     protected $db;
     protected $tpls;
     protected $loginInfo;
+    protected $pushService;
+
     public function __construct()
     {
         if ($GLOBALS['sys_config']['db_switch'] == true)
         {
             $this->db = new DB($GLOBALS['db_config']);
+            $this->pushService = new PushService();
         }
         $this->tpls = new Template();
         
@@ -166,5 +169,7 @@ class commonControl
         
         die('{"result":"' . $type . '","message":"' . $message . '","position":' . $position . '}');
     }
+    
+      
 }
 ?>

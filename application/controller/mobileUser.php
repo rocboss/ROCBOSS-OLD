@@ -1,12 +1,90 @@
 <?php
 !defined('ROC') && exit('REFUSED!');
-Class userControl extends commonControl
+Class mobileUserControl extends commonControl
 {
     public $page;
-    public $per = 30;
-    public function index()
+    public $per = 15;
+    
+    public function userDetailInfo(){
+        
+        $this->validateToken();
+        
+        $requestUid = $_POST['userId'];
+        $loginUid = $_POST['loginUserId'];
+        
+        $userInfo = $this->getMemberInfo('uid', $requestUid);
+        
+        $userInfo['homeThemeBack'] = Image::getHomeThemeBackURL($loginUid);
+        
+        $topicsCount = $this->db->count("roc_topic", array(
+                'uid' => $requestUid
+            ));
+        
+        $replyCount = $this->db->count("roc_reply", array(
+                'uid' => $requestUid
+            ));
+        
+        $fansCount = $this->db->count("roc_follow", array(
+                'uid' => $requestUid
+            ));
+        
+        if($requestUid != $loginUid){
+            
+            $isFollow = $this->getFollowStatus($requestUid, $loginUid);
+            
+            $finalUserInfo = array('userInfo' => $userInfo,
+                                   'isFollow' => $isFollow,
+                                   'topicsCount' => $topicsCount,
+                                   'replyCount' => $replyCount,
+                                   'fansCount' => $fansCount
+                                   );
+                    
+            $this->echoAppJsonResult('用户详情',$finalUserInfo,0);
+
+        }else{
+            
+            $whisperCount = $this->db->count("roc_whisper", array(
+                'roc_whisper.uid' => $loginUid,
+            ));
+            
+            $whisperUnreadCount = $this->db->count('roc_whisper', array(
+                'AND' => array(
+                    'atuid' => $loginUid,
+                    'isread' => 0
+                )
+            ));
+            
+            $notificationCount = $this->db->count("roc_notification", array(
+                'uid' => $loginUid,
+            ));
+            
+            $notificationUnreadCount = $this->db->count('roc_notification', array(
+                'AND' => array(
+                    'atuid' => $loginUid,
+                    'isread' => 0
+                )
+            ));
+                        
+            $finalUserInfo = array('userInfo' => $userInfo,
+                                   'topicsCount' => $topicsCount,
+                                   'replyCount' => $replyCount,
+                                   'fansCount' => $fansCount,
+                                   'whisperCount' => $whisperCount,
+                                   'whisperUnreadCount' => $whisperUnreadCount,
+                                   'notificationCount' => $notificationCount,
+                                   'notificationUnreadCount' => $notificationUnreadCount
+                                   );
+                    
+            $this->echoAppJsonResult('用户详情',$finalUserInfo,0);
+        }
+    }
+
+    public function topics()
     {
-        $requestUid = $this->getRquestUid();
+        $this->validateToken();
+        
+        $requestUid = $_POST['userId'];
+        $pageIndex = $_POST['pageIndex'];
         
         if ($this->db->has('roc_user', array(
             'uid' => $requestUid
@@ -30,7 +108,7 @@ Class userControl extends commonControl
                 'ORDER' => 'roc_topic.tid DESC',
                 
                 'LIMIT' => array(
-                    $this->per * (Utils::getCurrentPage() - 1),
+                    $this->per * ($pageIndex - 1),
                     $this->per
                 )
             ));
@@ -50,37 +128,20 @@ Class userControl extends commonControl
                 $datas[$key]['tagArray'] = $this->getTopicTag($datas[$key]['tid']);
             }
             
-            $this->getFollowStatus($requestUid);
-            
-            $this->page = new Page($this->per, $this->db->count("roc_topic", array(
-                'uid' => $requestUid
-            )), Utils::getCurrentPage(), 8, ROOT . 'user/index/uid/' . $requestUid . '/page/');
-            
-            $userInfo = $this->getMemberInfo('uid', $requestUid);
-            
-            $this->tpls->assign('seo', $this->getSiteSEO($userInfo['username'] . '的主题', $userInfo['username'], $userInfo['username'] . '的主题'));
-            
-            $this->tpls->assign('topicArray', $datas);
-            
-            $this->tpls->assign('page', $this->page->show());
-            
-            $this->tpls->assign('loginInfo', $this->loginInfo);
-            
-            $this->tpls->assign('userInfo', $userInfo);
-            
-            $this->tpls->assign('RequestType', 'topic');
-            
-            $this->tpls->display('user');
+            $this->echoAppJsonResult('我的帖子列表', $datas,0);
         }
         else
         {
-            $this->tpls->display('404');
+            $this->echoAppJsonResult('用户不存在', array(),0);
         }
     }
     
     public function reply()
     {
-        $requestUid = $this->getRquestUid();
+        $this->validateToken();
+        
+        $requestUid = $_POST['userId'];
+        $pageIndex = $_POST['pageIndex'];
         
         if ($this->db->has('roc_user', array(
             'uid' => $requestUid
@@ -102,7 +163,7 @@ Class userControl extends commonControl
                 'ORDER' => 'roc_reply.pid DESC',
                 
                 'LIMIT' => array(
-                    $this->per * (Utils::getCurrentPage() - 1),
+                    $this->per * ($pageIndex - 1),
                     $this->per
                 )
             ));
@@ -118,35 +179,20 @@ Class userControl extends commonControl
             
             $this->getFollowStatus($requestUid);
             
-            $this->page = new Page($this->per, $this->db->count("roc_reply", array(
-                'uid' => $requestUid
-            )), Utils::getCurrentPage(), 8, ROOT . 'user/reply/uid/' . $requestUid . '/page/');
-            
-            $userInfo = $this->getMemberInfo('uid', $requestUid);
-            
-            $this->tpls->assign('seo', $this->getSiteSEO($userInfo['username'] . '的回复', $userInfo['username'], $userInfo['username'] . '的回复'));
-            
-            $this->tpls->assign('replyArray', $datas);
-            
-            $this->tpls->assign('page', $this->page->show());
-            
-            $this->tpls->assign('loginInfo', $this->loginInfo);
-            
-            $this->tpls->assign('userInfo', $userInfo);
-            
-            $this->tpls->assign('RequestType', 'reply');
-            
-            $this->tpls->display('user');
+            $this->echoAppJsonResult('我的回复',$datas,0);
         }
         else
         {
-            $this->tpls->display('404');
+            $this->echoAppJsonResult('用户不存在',array(),1);
         }
     }
     
     public function follow()
     {
-        $requestUid = $this->getRquestUid();
+        $this->validateToken();
+        
+        $requestUid = $_POST['userId'];
+        $pageIndex = $_POST['pageIndex'];
         
         if ($this->db->has('roc_user', array(
             'uid' => $requestUid
@@ -164,7 +210,7 @@ Class userControl extends commonControl
                 'roc_follow.uid' => $requestUid,
                 
                 'LIMIT' => array(
-                    $this->per * (Utils::getCurrentPage() - 1),
+                    $this->per * ($pageIndex - 1),
                     $this->per
                 )
             ));
@@ -174,37 +220,20 @@ Class userControl extends commonControl
                 $datas[$key]['avatar'] = Image::getAvatarURL($datas[$key]['uid']);
             }
             
-            $this->getFollowStatus($requestUid);
-            
-            $this->page = new Page($this->per, $this->db->count("roc_follow", array(
-                'uid' => $requestUid
-            )), Utils::getCurrentPage(), 8, ROOT . 'user/follow/uid/' . $requestUid . '/page/');
-            
-            $userInfo = $this->getMemberInfo('uid', $requestUid);
-            
-            $this->tpls->assign('seo', $this->getSiteSEO($userInfo['username'] . '的关注', $userInfo['username'], $userInfo['username'] . '的关注'));
-            
-            $this->tpls->assign('followList', $datas);
-            
-            $this->tpls->assign('page', $this->page->show());
-            
-            $this->tpls->assign('loginInfo', $this->loginInfo);
-            
-            $this->tpls->assign('userInfo', $userInfo);
-            
-            $this->tpls->assign('RequestType', 'follow');
-            
-            $this->tpls->display('user');
+            $this->echoAppJsonResult('某用户的关注',$datas,0);    
         }
         else
         {
-            $this->tpls->display('404');
+            $this->echoAppJsonResult('用户不存在',$datas,1);
         }
     }
     
     public function fans()
     {
-        $requestUid = $this->getRquestUid();
+        $this->validateToken();
+        
+        $requestUid = $_POST['userId'];
+        $pageIndex = $_POST['pageIndex'];
         
         if ($this->db->has('roc_user', array(
             'uid' => $requestUid
@@ -220,7 +249,7 @@ Class userControl extends commonControl
                 'roc_follow.fuid' => $requestUid,
                 
                 'LIMIT' => array(
-                    $this->per * (Utils::getCurrentPage() - 1),
+                    $this->per * ($pageIndex - 1),
                     $this->per
                 )
             ));
@@ -229,41 +258,22 @@ Class userControl extends commonControl
             {
                 $datas[$key]['avatar'] = Image::getAvatarURL($datas[$key]['uid']);
             }
-            
-            $this->getFollowStatus($requestUid);
-            
-            $this->page = new Page($this->per, $this->db->count("roc_follow", array(
-                'fuid' => $requestUid
-            )), Utils::getCurrentPage(), 8, ROOT . 'user/fans/uid/' . $requestUid . '/page/');
-            
-            $userInfo = $this->getMemberInfo('uid', $requestUid);
-            
-            $this->tpls->assign('seo', $this->getSiteSEO($userInfo['username'] . '的粉丝', $userInfo['username'], $userInfo['username'] . '的粉丝'));
-            
-            $this->tpls->assign('fansList', $datas);
-            
-            $this->tpls->assign('page', $this->page->show());
-            
-            $this->tpls->assign('loginInfo', $this->loginInfo);
-            
-            $this->tpls->assign('userInfo', $userInfo);
-            
-            $this->tpls->assign('RequestType', 'fans');
-            
-            $this->tpls->display('user');
+                        
+            $this->echoAppJsonResult('用户粉丝列表',$datas,0);
         }
         else
         {
-            $this->tpls->display('404');
+            $this->echoAppJsonResult('用户不存在',array(),1);
         }
     }
     
     public function favorite()
-    {
-        $this->checkPrivate(true);
+    {        
+        $this->validateToken();
         
-        $requestUid = $this->loginInfo['uid'];
-        
+        $requestUid = $_POST['userId'];
+        $pageIndex = $_POST['pageIndex'];
+               
         if ($this->db->has('roc_user', array(
             'uid' => $requestUid
         )))
@@ -288,7 +298,7 @@ Class userControl extends commonControl
                 'ORDER' => 'roc_favorite.fid DESC',
                 
                 'LIMIT' => array(
-                    $this->per * (Utils::getCurrentPage() - 1),
+                    $this->per * ($pageIndex - 1),
                     $this->per
                 )
             ));
@@ -306,27 +316,11 @@ Class userControl extends commonControl
                 $datas[$key]['lasttime'] = Utils::formatTime($datas[$key]['lasttime']);
             }
             
-            $this->page = new Page($this->per, $this->db->count("roc_favorite", array(
-                'uid' => $requestUid
-            )), Utils::getCurrentPage(), 8, ROOT . 'user/favorite/page/');
-            
-            $this->tpls->assign('seo', $this->getSiteSEO('我的收藏', '我的收藏', '我的收藏'));
-            
-            $this->tpls->assign('topicArray', $datas);
-            
-            $this->tpls->assign('page', $this->page->show());
-            
-            $this->tpls->assign('loginInfo', $this->loginInfo);
-            
-            $this->tpls->assign('userInfo', $this->getMemberInfo('uid', $requestUid));
-            
-            $this->tpls->assign('RequestType', 'favorite');
-            
-            $this->tpls->display('user');
+            $this->echoAppJsonResult('某用户的收藏',$datas,0);
         }
         else
         {
-            $this->tpls->display('404');
+            $this->echoAppJsonResult('用户不存在',array(),1);
         }
     }
     
@@ -399,13 +393,12 @@ Class userControl extends commonControl
     }
     
     public function notification()
-    {
-        $this->checkPrivate(true);
+    {        
+        $this->validateToken();
         
-        $notifyStatus = isset($GLOBALS['Router']['params']['status']) && in_array($GLOBALS['Router']['params']['status'], array(
-            0,
-            1
-        )) ? intval($GLOBALS['Router']['params']['status']) : 0;
+        $notifyStatus = $_POST['status'];
+        $loginUid = $_POST['loginUserId'];
+        $pageIndex = $_POST['pageIndex'];
         
         $notificationList = $this->db->select('roc_notification', array(
             'nid',
@@ -416,7 +409,7 @@ Class userControl extends commonControl
             'isread'
         ), array(
             'AND' => array(
-                'atuid' => $this->loginInfo['uid'],
+                'atuid' => $loginUid,
                 
                 'isread' => $notifyStatus
             ),
@@ -426,7 +419,7 @@ Class userControl extends commonControl
             ),
             
             'LIMIT' => array(
-                $this->per * (Utils::getCurrentPage() - 1),
+                $this->per * ($pageIndex - 1),
                 $this->per
             )
         ));
@@ -480,41 +473,30 @@ Class userControl extends commonControl
                 'isread' => 1
             ), array(
                 'AND' => array(
-                    'atuid' => $this->loginInfo['uid'],
+                    'atuid' => $loginUid,
                     'isread' => 0
                 )
             ));
         }
         
-        $this->page = new Page($this->per, $this->db->count("roc_notification", array(
-            'AND' => array(
-                'uid' => $this->loginInfo['uid'],
-                'isread' => $notifyStatus
-            )
-        )), Utils::getCurrentPage(), 8, ROOT . 'user/notification/status/' . $notifyStatus . '/page/');
-        
-        $this->tpls->assign('page', $this->page->show());
-        
-        $this->tpls->assign('seo', $this->getSiteSEO('我的提醒', '我的提醒', '我的提醒'));
-        
-        $this->tpls->assign('notificationList', $notificationList);
-        
-        $this->tpls->assign('notifyStatus', $notifyStatus);
-        
-        $this->tpls->assign('loginInfo', $this->loginInfo);
-        
-        $this->tpls->display('notification');
+        if($notifyStatus == 0){
+            
+           $this->echoAppJsonResult('未读提醒列表',$notificationList,0);
+           
+        }else{
+            
+           $this->echoAppJsonResult('已读提醒列表',$notificationList,0);
+        }
     }
     
     public function whisper()
-    {
-        $this->checkPrivate(true);
+    {        
+        $this->validateToken();
         
-        $whisperStatus = isset($GLOBALS['Router']['params']['status']) && in_array($GLOBALS['Router']['params']['status'], array(
-            0,
-            1,
-            2
-        )) ? intval($GLOBALS['Router']['params']['status']) : 0;
+        /* 0: 未读 1:已读 2:已发 */
+        $whisperStatus = $_POST['status'];
+        $loginUid = $_POST['loginUserId'];
+        $pageIndex = $_POST['pageIndex'];
         
         if ($whisperStatus == 2)
         {
@@ -532,9 +514,9 @@ Class userControl extends commonControl
                 'roc_user.username'
             ), array(
                 'AND' => array(
-                    'roc_whisper.uid' => $this->loginInfo['uid'],
+                    'roc_whisper.uid' => $loginUid,
                     
-                    'roc_whisper.del_flag[!]' => $this->loginInfo['uid']
+                    'roc_whisper.del_flag[!]' => $loginUid
                 ),
                 
                 'ORDER' => array(
@@ -542,19 +524,11 @@ Class userControl extends commonControl
                 ),
                 
                 'LIMIT' => array(
-                    $this->per * (Utils::getCurrentPage() - 1),
+                    $this->per * ($pageIndex - 1),
                     $this->per
                 )
                 
-            ));
-            
-            $this->page = new Page($this->per, $this->db->count('roc_whisper', array(
-                'AND' => array(
-                    'roc_whisper.uid' => $this->loginInfo['uid'],
-                    
-                    'roc_whisper.del_flag[!]' => $this->loginInfo['uid']
-                )
-            )), Utils::getCurrentPage(), 8, ROOT . 'user/whisper/status/' . $whisperStatus . '/page/');
+            ));            
         }
         else
         {
@@ -570,11 +544,11 @@ Class userControl extends commonControl
                 'roc_user.username'
             ), array(
                 'AND' => array(
-                    'roc_whisper.atuid' => $this->loginInfo['uid'],
+                    'roc_whisper.atuid' => $loginUid,
                     
                     'roc_whisper.isread' => $whisperStatus,
                     
-                    'roc_whisper.del_flag[!]' => $this->loginInfo['uid']
+                    'roc_whisper.del_flag[!]' => $loginUid
                 ),
                 
                 'ORDER' => array(
@@ -582,7 +556,7 @@ Class userControl extends commonControl
                 ),
                 
                 'LIMIT' => array(
-                    $this->per * (Utils::getCurrentPage() - 1),
+                    $this->per * ($pageIndex - 1),
                     $this->per
                 )
                 
@@ -594,21 +568,11 @@ Class userControl extends commonControl
                     'isread' => 1
                 ), array(
                     'AND' => array(
-                        'atuid' => $this->loginInfo['uid'],
+                        'atuid' => $loginUid,
                         'isread' => 0
                     )
                 ));
             }
-            
-            $this->page = new Page($this->per, $this->db->count('roc_whisper', array(
-                'AND' => array(
-                    'roc_whisper.atuid' => $this->loginInfo['uid'],
-                    
-                    'roc_whisper.isread' => $whisperStatus,
-                    
-                    'roc_whisper.del_flag[!]' => $this->loginInfo['uid']
-                )
-            )), Utils::getCurrentPage(), 8, ROOT . 'user/whisper/status/' . $whisperStatus . '/page/');
         }
         
         foreach ($whisperList as $key => $WP)
@@ -620,24 +584,25 @@ Class userControl extends commonControl
             $whisperList[$key]['posttime'] = Utils::formatTime($WP['posttime']);
         }
         
-        $this->tpls->assign('seo', $this->getSiteSEO('我的私信', '我的私信', '我的私信'));
+        if($whisperStatus == 2){
+            
+            $this->echoAppJsonResult('已发私信', $whisperList,0);
+        }
         
-        $this->tpls->assign('page', $this->page->show());
+        if($whisperStatus == 0){
+            
+            $this->echoAppJsonResult('未读私信', $whisperList,0);
+        }
         
-        $this->tpls->assign('whisperList', $whisperList);
-        
-        $this->tpls->assign('whisperStatus', $whisperStatus);
-        
-        $this->tpls->assign('loginInfo', $this->loginInfo);
-        
-        $this->tpls->display('whisper');
+        if($whisperStatus == 1){
+            
+            $this->echoAppJsonResult('已读私信', $whisperList,0);
+        }
     }
     
     public function login()
     {
-        if ($this->checkPrivate() == true)
-        {
-            if (isset($_POST['email'], $_POST['password'], $_POST['do']) && $_POST['do'] == 'login')
+        if (isset($_POST['email'], $_POST['password']))
             {
                 $loginAccount = Filter::in($_POST['email']);
                 
@@ -645,11 +610,11 @@ Class userControl extends commonControl
                 
                 if (strlen($loginAccount) < 2)
                 {
-                    $this->showMsg('账号无效', 'error', 1);
+                    $this->echoAppJsonResult('账号无效', array(), 1);
                 }
                 if ((strlen($loginPassword) < 6 || strlen($loginPassword) > 26) || substr_count($loginPassword, ' ') > 0)
                 {
-                    $this->showMsg('密码无效', 'error', 2);
+                    $this->echoAppJsonResult('密码无效', array(), 2);
                 }
                 if (Utils::checkEmailValidity($loginAccount))
                 {
@@ -657,7 +622,7 @@ Class userControl extends commonControl
                 }
                 else if (Utils::checkNickname($loginAccount) != '')
                 {
-                    $this->showMsg('账号不合法', 'error', 1);
+                    $this->echoAppJsonResult('账号不合法', array(), 1);
                 }
                 else
                 {
@@ -668,32 +633,25 @@ Class userControl extends commonControl
                 
                 if (empty($userInfo['uid']))
                 {
-                    $this->showMsg('账号不存在', 'error', 1);
+                    $this->echoAppJsonResult('账号不存在', array(), 1);
                 }
                 else
                 {
                     if (md5($loginPassword) == $userInfo['password'])
                     {
-                        $this->loginCookie($GLOBALS['sys_config']['ROCKEY'], $userInfo['uid'], $userInfo['username'], $userInfo['groupid']);
-                        
                         $this->updateLasttime($userInfo['uid']);
                         
-                        $this->showMsg('登录成功');
+                        //创建令牌
+                        $userInfo['token'] = Secret::createMobileLoginToken();
+                        
+                        $this->echoAppJsonResult('登录成功',$userInfo,0);
                     }
                     else
                     {
-                        $this->showMsg('账号与密码不匹配', 'error', 2);
+                        $this->echoAppJsonResult('账号与密码不匹配', array(), 2);
                     }
                 }
-            }
-            $this->tpls->assign('seo', $this->getSiteSEO('登录', '登录', '登录'));
-            
-            $this->tpls->assign('currentStatus', 'login');
-            
-            $this->tpls->assign('loginInfo', $this->loginInfo);
-            
-            $this->tpls->display('login');
-        }
+       }
     }
     
     public function qqlogin()
@@ -828,71 +786,55 @@ Class userControl extends commonControl
     }
     
     public function register()
-    {
-        if ($this->checkPrivate() == true)
-        {
-            if (isset($_POST['email'], $_POST['nickname'], $_POST['password'], $_POST['verify']) && $_POST['do'] == 'register')
-            {
-                if (!$GLOBALS['sys_config']['join_switch'])
-                {
-                    $this->showMsg('账号注册暂不开放，请使用QQ登录', 'error');
-                }
-                
+    {                     
+        if (isset($_POST['email'], $_POST['nickname'], $_POST['password']))
+            { 
                 $email = strtolower(stripslashes(trim($_POST['email'])));
                 
                 $nickname = trim(Filter::in($_POST['nickname']));
                 
                 $password = stripslashes(trim($_POST['password']));
-                
-                $verify = trim($_POST['verify']);
-                
-                if ($email == '' || $nickname == '' || $password == '' || $verify == '')
+                                
+                if ($email == '' || $nickname == '' || $password == '')
                 {
-                    if ($verify == '')
-                    {
-                        $this->showMsg('验证码不能为空', 'error', 4);
-                    }
                     if ($email == '')
                     {
-                        $this->showMsg('邮箱不能为空', 'error', 1);
+                        $this->echoAppJsonResult('邮箱不能为空',array(),1);
                     }
                     if ($nickname == '')
                     {
-                        $this->showMsg('用户名不能为空', 'error', 2);
+                        $this->echoAppJsonResult('用户名不能为空',array(),2);
                     }
                     if ($password == '')
                     {
-                        $this->showMsg('密码不能为空', 'error', 3);
+                        $this->echoAppJsonResult('密码不能为空',array(),3);
                     }
                 }
-                if (md5(strtolower($verify)) != $_SESSION['identifying_code'])
-                {
-                    $this->showMsg('验证码错误', 'error', 4);
-                }
+                
                 if (!Utils::checkEmailValidity($email))
                 {
-                    $this->showMsg('邮件地址不正确', 'error', 1);
+                    $this->echoAppJsonResult('邮件地址不正确',array(),4);
                 }
                 
                 $usernameError = Utils::checkNickname($nickname);
                 
                 if ($usernameError != '')
                 {
-                    $this->showMsg($usernameError, 'error', 2);
+                    $this->echoAppJsonResult($usernameError,array(),5);
                 }
                 if (substr_count($password, ' ') > 0)
                 {
-                    $this->showMsg('密码不能使用空格', 'error', 3);
+                    $this->echoAppJsonResult('密码不能使用空格',array(),6);
                 }
                 if (strlen($password) < 6 || strlen($password) > 26)
                 {
-                    $this->showMsg('密码长度不合法', 'error', 3);
+                    $this->echoAppJsonResult('密码长度不合法',array(),7);
                 }
                 if ($this->db->has('roc_user', array(
                     'email' => $email
                 )))
                 {
-                    $this->showMsg('邮件地址已被占用', 'error', 1);
+                    $this->echoAppJsonResult('邮件地址已被占用',array(),8);
                 }
                 else
                 {
@@ -900,7 +842,7 @@ Class userControl extends commonControl
                         'username' => $nickname
                     )))
                     {
-                        $this->showMsg('昵称已被占用', 'error', 2);
+                        $this->echoAppJsonResult('昵称已被占用',array(),9);
                     }
                     else
                     {
@@ -910,24 +852,15 @@ Class userControl extends commonControl
                         {
                             Image::CreatDefaultAvatar($userID);
                             
-                            $this->showMsg('注册成功');
-                                                    }
+                            $this->echoAppJsonResult('注册成功',array('userId'=>$userID),0);
+                        }
                         else
                         {
-                            $this->showMsg('注册失败', 'error', 0);
+                            $this->echoAppJsonResult('注册失败',array(),10);
                         }
                     }
                 }
             }
-            
-            $this->tpls->assign('seo', $this->getSiteSEO('注册', '注册', '注册'));
-            
-            $this->tpls->assign('currentStatus', 'register');
-            
-            $this->tpls->assign('loginInfo', $this->loginInfo);
-            
-            $this->tpls->display('login');
-        }
     }
     
     public function t()
@@ -957,6 +890,96 @@ Class userControl extends commonControl
         }
     }
     
+    public function registAppleDevice() {
+                
+        $appname = $_POST['appname'];
+        $appversion = $_POST['appversion'];
+        $deviceuid = $_POST['deviceuid'];
+        $devicetoken = $_POST['devicetoken'];
+        $devicename = $_POST['devicename'];
+        $devicemodel = $_POST['devicemodel'];
+        $deviceversion = $_POST['deviceversion'];
+        $pushbadge = $_POST['pushbadge'];
+        $pushalert = $_POST['pushalert'];
+        $pushsound = $_POST['pushsound'];
+        $loginUid = $_POST['loginUserId'];
+        $environment = $_POST['environment'];
+
+        $this->registDevice(0, $deviceuid, $loginUid);
+
+        $this->pushService->registAppleDevice($appname, $appversion, $deviceuid, $devicetoken, $devicename, $devicemodel, $deviceversion, $pushbadge, $pushalert, $pushsound,$loginUid,$environment);
+        
+    }
+    
+    public function registAndroidDevice(){
+        
+        
+    }
+
+
+    public function registDevice($deviceType,$deviceToken,$loginUid){
+        
+        if ($this->db->has('roc_device', array(
+            'user_id' => $loginUid
+        )))
+        {           
+           $addDBArray = array(
+               
+            'last_used_device' => $deviceType,
+             
+            );
+           
+           if($deviceType == 0){
+                
+               $addDBArray['ios_token'] = $deviceToken;
+               
+            }else{
+                
+               $addDBArray['android_token'] = $deviceToken;
+
+            }
+            
+            $result =  $this->db->update('roc_device',$addDBArray,array('user_id'=>$loginUid));
+           
+            $this->echoAppJsonResult('更新设备操作',array('deviceId'=>$result),0);
+            
+        }else{
+            
+            $addDBArray = array(
+                
+            'last_used_device' => $deviceType,
+            
+            'user_id' => $loginUid,
+   
+            );
+            
+            if($deviceType == 0){
+                
+               $addDBArray['ios_token'] = $deviceToken;
+               
+            }else{
+                
+               $addDBArray['android_token'] = $deviceToken;
+
+            }
+            
+            $result = $this->db->insert('roc_device',$addDBArray);
+            
+            return $result;
+
+        }
+                
+    }
+    
+    public function pushTest() {
+        
+        $loginUid = $_POST['loginUserId'];
+        
+        $this->pushService->pushMessageToMobile('推送测试','iOS推送描述',1,array('status'=>1),'',$loginUid);
+     
+    }
+
+
     public function logout()
     {
         session_destroy();
@@ -1050,18 +1073,18 @@ Class userControl extends commonControl
         return $this->db->insert('roc_user', $addDBArray);
     }
     
-    private function getFollowStatus($requestUid)
+    private function getFollowStatus($requestUid,$loginUserId)
     {
-        if ($requestUid != $this->loginInfo['uid'])
+        if ($requestUid != $loginUserId)
         {
             $isFollow = $this->db->has('roc_follow', array(
                 'AND' => array(
-                    'uid' => $this->loginInfo['uid'],
+                    'uid' => $loginUserId,
                     'fuid' => $requestUid
                 )
             )) ? 1 : 0;
             
-            $this->tpls->assign('isFollow', $isFollow);
+            return $isFollow;
         }
     }
     
@@ -1086,5 +1109,38 @@ Class userControl extends commonControl
             return true;
         }
     }
+    
+    private function echoAppJsonResult($msg,$resultDictionary = array(),$status){
+                        
+        $resultArray = array('status'=>$status,'data'=>$resultDictionary,'msg'=>$msg);
+        
+        echo json_encode($resultArray);
+        
+    }
+    
+    protected function validateToken(){
+        
+        if (isset($_POST['token'])){
+           
+            $validate = Secret::validateLoginToken($_POST['token']);
+        
+        if($validate){
+            
+            return $validate;
+            
+        }  else {
+           
+            $this->echoAppJsonResult('token非法', array(),1);
+                        
+            exit();
+        }
+        
+       }else{
+           
+           $this->echoAppJsonResult('非法请求', array(),1);
+                        
+            exit();
+       }
+    } 
 }
 ?>
