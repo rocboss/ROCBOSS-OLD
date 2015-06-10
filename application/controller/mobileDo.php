@@ -1,26 +1,44 @@
 <?php
 !defined('ROC') && exit('REFUSED!');
-Class doControl extends commonControl
+Class mobileDoControl extends commonControl
 {
     public $page;
-    public $per = 30;
+    public $per = 20;
     public function postTopic()
-    {        
-        if ($this->checkPrivate(1) == true)
+    {
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        $client = $_POST['client'];
+        
+        if ($this->checkPrivate(1,$loginUid) == true)
         {
-            $this->checkFloodTime($this->loginInfo['uid'], 30);
+            $isFlood = $this->checkFloodTime($loginUid, 2);
+            
+            if($isFlood == 3){
+                
+                $this->echoAppJsonResult('用户Id不存在',array(),1);
+                
+                return;
+                
+            }  elseif ($isFlood == 1) {
+                
+                $this->echoAppJsonResult('不允许灌水',array(),1);
+                
+                return;
+            }
             
             if (isset($_POST['title'], $_POST['msg'], $_POST['tag']) && Filter::topicIn($_POST['msg']) != '')
             {
                 if (trim($_POST['tag']) != '')
                 {
-                    $tagArray = array_filter(explode(' ', trim($_POST['tag'])));
+                    $tagArray = array_filter(explode(',', trim($_POST['tag'])));
                 }
                 
-                $contentReturn = $this->doAtUser(Filter::topicIn($_POST['msg']));
+                $contentReturn = $this->doAtUser(Filter::topicIn($_POST['msg']),$loginUid);
                 
                 $topicArray = array(
-                    'uid' => $this->loginInfo['uid'],
+                    'uid' => $loginUid,
                     
                     'title' => (trim($_POST['title']) != '') ? Filter::topicIn($_POST['title']) : Utils::cutSubstr(Filter::topicIn($_POST['msg'])),
                     
@@ -28,7 +46,7 @@ Class doControl extends commonControl
                     
                     'comments' => 0,
                     
-                    'client' => Utils::getClient(),
+                    'client' => $client,
                     
                     'istop' => 0,
                     
@@ -103,35 +121,53 @@ Class doControl extends commonControl
                         'tid' => $insertTopicID
                     ));
                     
-                    $this->updateLasttime($this->loginInfo['uid']);
+                    $this->updateLasttime($loginUid);
                     
-                    $this->updateUserScore($this->loginInfo['uid'], $GLOBALS['sys_config']['scores']['topic'], 1);
+                    $this->updateUserScore($loginUid, $GLOBALS['sys_config']['scores']['topic'], 1);
                     
-                    $this->showMsg('发表成功~', 'success', $insertTopicID);
+                    $this->echoAppJsonResult('发表成功~', array('topicId'=>$insertTopicID),0);
                 }
                 else
                 {
-                    $this->showMsg('发表失败，请重试！', 'error');
+                    $this->echoAppJsonResult('发表失败，请重试！',array(),1);
                 }
             }
             else
             {
-                $this->showMsg('请检查您的输入是否合法，正文详情必填哦~', 'error');
+                $this->echoAppJsonResult('请检查您的输入是否合法，正文详情必填哦~',array(),2);
             }
         }
         else
         {
-            $this->showMsg('您尚未登录或已被禁言，无法创建新主题哦~', 'error');
+            $this->echoAppJsonResult('您尚未登录或已被禁言，无法创建新主题哦~',array(),3);
         }
     }
     
     public function postReply()
     {
-        if ($this->checkPrivate(1) == true)
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        $client = $_POST['client'];
+        
+        if ($this->checkPrivate(1,$loginUid) == true)
         {
-            $this->checkFloodTime($this->loginInfo['uid'], 15);
+            $isFlood = $this->checkFloodTime($loginUid, 2);
             
-            if (isset($_POST['content'], $_POST['tid']) && Filter::topicIn($_POST['content']) != '' && is_numeric($_POST['tid']) && Utils::getStrlen($_POST['content']) <= 250)
+            if($isFlood == 3){
+                
+                $this->echoAppJsonResult('用户Id不存在',array(),1);
+                
+                return;
+                
+            }  elseif ($isFlood == 1) {
+                
+                $this->echoAppJsonResult('不允许灌水',array(),1);
+                
+                return;
+            }
+            
+            if (isset($_POST['content'], $_POST['tid']) && Filter::topicIn($_POST['content']) != '' && is_numeric($_POST['tid']) && Utils::getStrlen($_POST['content']) <= 3000)
             {
                 $tid = intval($_POST['tid']);
                 
@@ -143,19 +179,20 @@ Class doControl extends commonControl
                         'tid' => $tid
                     )) == 1)
                     {
-                        $this->showMsg('抱歉，主题已锁，无法再回复了', 'error');
+                        $this->echoAppJsonResult('抱歉，主题已锁，无法再回复了',array(),1);
+                        return;
                     }
                     
-                    $contentReturn = $this->doAtUser(Filter::topicIn($_POST['content']));
+                    $contentReturn = $this->doAtUser(Filter::topicIn($_POST['content']),$loginUid);
                     
                     $topicArray = array(
                         'tid' => $tid,
                         
-                        'uid' => $this->loginInfo['uid'],
+                        'uid' => $loginUid,
                         
                         'content' => $contentReturn['content'],
                         
-                        'client' => Utils::getClient(),
+                        'client' => $client,
                         
                         'posttime' => time()
                     );
@@ -181,7 +218,7 @@ Class doControl extends commonControl
                             {
                                 $this->db->insert('roc_notification', array(
                                     'atuid' => $atuid,
-                                    'uid' => $this->loginInfo['uid'],
+                                    'uid' => $loginUid,
                                     'tid' => $tid,
                                     'pid' => $insertReplyID,
                                     'fid' => 0,
@@ -198,7 +235,7 @@ Class doControl extends commonControl
                         {
                             $this->db->insert('roc_notification', array(
                                 'atuid' => $authorUid,
-                                'uid' => $this->loginInfo['uid'],
+                                'uid' => $loginUid,
                                 'tid' => $tid,
                                 'pid' => $insertReplyID,
                                 'fid' => 0,
@@ -206,41 +243,57 @@ Class doControl extends commonControl
                             ));
                         }
                         
-                        $this->updateLasttime($this->loginInfo['uid']);
+                        $this->updateLasttime($loginUid);
                         
-                        $this->updateUserScore($this->loginInfo['uid'], $GLOBALS['sys_config']['scores']['reply'], 2);
+                        $this->updateUserScore($loginUid, $GLOBALS['sys_config']['scores']['reply'], 2);
                         
-                        $this->showMsg('发表成功~', 'success', $insertReplyID);
-                        
+                        $this->echoAppJsonResult('发表成功~',array('replyId'=>$insertReplyID),0);
                     }
                     else
                     {
-                        $this->showMsg('发表失败，请重试！', 'error');
+                        $this->echoAppJsonResult('发表失败，请重试！',array(),2);
                     }
                 }
                 else
                 {
-                    $this->showMsg('该帖子不存在，无法回复！', 'error');
+                    $this->echoAppJsonResult('该帖子不存在，无法回复！',array(),3);
                 }
             }
             else
             {
-                $this->showMsg('请检查您的输入是否合法，回复非空且不能超过250个字', 'error');
+                $this->echoAppJsonResult('请检查您的输入是否合法，回复非空且不能超过3000个字',array(),4);
             }
         }
         else
         {
-            $this->showMsg('您尚未登录或已被禁言，无法创建新主题哦~', 'error');
+            $this->echoAppJsonResult('您尚未登录或已被禁言，无法创建新主题哦~',array(),5);
         }
     }
     
     public function postFloor()
     {
-        if ($this->checkPrivate(1) == true)
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        
+        if ($this->checkPrivate(1,$loginUid) == true)
         {
-            $this->checkFloodTime($this->loginInfo['uid'], 10);
+            $isFlood = $this->checkFloodTime($loginUid, 2);
             
-            if (isset($_POST['content'], $_POST['pid']) && Filter::topicIn($_POST['content']) != '' && Utils::getStrlen($_POST['content']) <= 100 && is_numeric($_POST['pid']))
+            if($isFlood == 3){
+                
+                $this->echoAppJsonResult('用户Id不存在',array(),1);
+                
+                return;
+                
+            }  elseif ($isFlood == 1) {
+                
+                $this->echoAppJsonResult('不允许灌水',array(),1);
+                
+                return;
+            }
+            
+            if (isset($_POST['content'], $_POST['pid']) && Filter::topicIn($_POST['content']) != '' && Utils::getStrlen($_POST['content']) <= 500 && is_numeric($_POST['pid']))
             {
                 $pid = intval($_POST['pid']);
                 
@@ -248,7 +301,7 @@ Class doControl extends commonControl
                     'pid' => $pid
                 )))
                 {
-                    $contentReturn = $this->doAtUser(Filter::topicIn($_POST['content']));
+                    $contentReturn = $this->doAtUser(Filter::topicIn($_POST['content']),$loginUid);
                     
                     $tid = $this->db->get('roc_reply', 'tid', array(
                         'pid' => $pid
@@ -257,7 +310,7 @@ Class doControl extends commonControl
                     $floorArray = array(
                         'pid' => $pid,
                         
-                        'uid' => $this->loginInfo['uid'],
+                        'uid' => $loginUid,
                         
                         'content' => $contentReturn['content'],
                         
@@ -268,7 +321,7 @@ Class doControl extends commonControl
                     
                     if ($insertFloorID > 0)
                     {
-                        $this->updateLasttime($this->loginInfo['uid']);
+                        $this->updateLasttime($loginUid);
                         
                         if (!empty($contentReturn['atUidArray']))
                         {
@@ -276,37 +329,35 @@ Class doControl extends commonControl
                             {
                                 $this->db->insert('roc_notification', array(
                                     'atuid' => $atuid,
-                                    'uid' => $this->loginInfo['uid'],
+                                    'uid' => $loginUid,
                                     'tid' => $tid,
                                     'pid' => $pid,
                                     'fid' => $insertFloorID,
                                     'isread' => 0
                                 ));
-                                
-                                
                             }
                         }
                         
-                        $this->showMsg('评论成功~', 'success', $insertFloorID);
+                        $this->echoAppJsonResult('评论成功~',array('replyFloorId'=>$insertFloorID),0);
                     }
                     else
                     {
-                        $this->showMsg('评论失败，请重试！', 'error');
+                        $this->echoAppJsonResult('评论失败，请重试！',array(),2);
                     }
                 }
                 else
                 {
-                    $this->showMsg('非法pid参数，请检查您的输入', 'error');
+                    $this->echoAppJsonResult('非法pid参数，请检查您的输入',array(),3);
                 }
             }
             else
             {
-                $this->showMsg('请检查您的输入是否合法，评论不可为空且不能超过100字', 'error');
+                $this->echoAppJsonResult('请检查您的输入是否合法，评论不可为空且不能超过500字',array(),4);
             }
         }
         else
         {
-            $this->showMsg('您尚未登录或已被禁言，无法评论哦~', 'error');
+            $this->echoAppJsonResult('您已被禁言，无法评论哦~',array(),5);
         }
     }
 
@@ -326,7 +377,11 @@ Class doControl extends commonControl
     
     public function uploadPicture()
     {
-        if ($this->checkPrivate(1) == true)
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        
+        if ($this->checkPrivate(1,$loginUid) == true)
         {
             $time = time();
             
@@ -342,7 +397,7 @@ Class doControl extends commonControl
                     
                     $img = base64_decode($matches[2]);
                     
-                    $target = $path . '/' . md5($time . '_' . $this->loginInfo['uid'] . '_' . rand(1000, 9999)) . '.png';
+                    $target = $path . '/' . md5($time . '_' . $loginUid . '_' . rand(1000, 9999)) . '.png';
                     
                     @file_put_contents($target, $img);
                     
@@ -372,7 +427,7 @@ Class doControl extends commonControl
                     imagedestroy($image_p);
                     
                     $aArray = array(
-                        'uid' => $this->loginInfo['uid'],
+                        'uid' => $loginUid,
                         
                         'path' => $target,
                         
@@ -387,7 +442,7 @@ Class doControl extends commonControl
                     
                     if ($aID > 0)
                     {
-                        $this->showMsg('图片上传成功', 'success', $aID);
+                        $this->echoAppJsonResult('图片上传成功',array('pictureId'=>$aID),0);
                     }
                     else
                     {
@@ -395,30 +450,34 @@ Class doControl extends commonControl
                         
                         @unlink($target . '.thumb.png');
                         
-                        $this->showMsg('图片上传处理失败，请重试', 'error');
+                        $this->echoAppJsonResult('图片上传处理失败，请重试',array(),2);
                     }
                 }
                 else
                 {
-                    $this->showMsg('图片上传失败，请检查上传文件是否合法', 'error');
+                    $this->echoAppJsonResult('图片上传失败，请检查上传文件是否合法',array(),3);
                 }
             }
         }
         else
         {
-            $this->showMsg('您尚未登录或已被禁言，无权上传图片哦~', 'error');
+            $this->echoAppJsonResult('您已被禁言，无权上传图片哦~',array(),4);
         }
     }
     
     public function uploadAvatar()
     {
-        if ($this->checkPrivate() == true)
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        
+        if ($this->checkPrivate(0,$loginUid) == true)
         {
             $time = time();
             
             $img = $_POST['base64'];
             
-            $path = 'application/uploads/avatars/' . intval($this->loginInfo['uid'] / 1000) . '/' . $this->loginInfo['uid'];
+            $path = 'application/uploads/avatars/' . intval($loginUid / 1000) . '/' . $loginUid;
             
             if (isset($img))
             {
@@ -453,11 +512,68 @@ Class doControl extends commonControl
                     
                     @unlink($target);
                     
-                    $this->showMsg('头像上传成功', 'success');
+                    $this->echoAppJsonResult('头像上传成功',array(),0);
                 }
                 else
                 {
-                    $this->showMsg('头像上传失败，请检查上传文件是否合法', 'error');
+                    $this->echoAppJsonResult('头像上传失败，请检查上传文件是否合法',array(),1);
+                }
+            }
+        }
+    }
+    
+    public function uploadHomeThemeBack()
+    {
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        
+        if ($this->checkPrivate(0,$loginUid) == true)
+        {
+            $time = time();
+            
+            $img = $_POST['base64'];
+            
+            $path = 'application/uploads/homeThemeBacks/' . intval($loginUid / 1000) . '/' . $loginUid;
+            
+            if (isset($img))
+            {
+                if (preg_match('/data:image\/([^;]*);base64,(.*)/', $img, $matches))
+                {
+                    $this->makeDir($path);
+                    
+                    $img = base64_decode($matches[2]);
+                    
+                    $target = $path . '/' . '200.png';
+                    
+                    @file_put_contents($target, $img);
+                    
+                    list($width_orig, $height_orig) = getimagesize($target);
+                    
+                    for ($i = 1; $i < 3; $i++)
+                    {
+                        $width = 500 * $i;
+                        
+                        $height = 500 * $i;
+                        
+                        $image_p = imagecreatetruecolor($width, $height);
+                        
+                        $image = imagecreatefromjpeg($target);
+                        
+                        imagecopyresampled($image_p, $image, 0, 0, 0, 0, $width, $height, $width_orig, $height_orig);
+                        
+                        imagejpeg($image_p, $path . '/' . (500 * $i) . '.png', 100);
+                        
+                        imagedestroy($image_p);
+                    }
+                    
+                    @unlink($target);
+                    
+                    $this->echoAppJsonResult('主页主题背景上传成功',array(),0);
+                }
+                else
+                {
+                    $this->echoAppJsonResult('主页主题背景上传成功，请检查上传文件是否合法',array(),1);
                 }
             }
         }
@@ -465,7 +581,11 @@ Class doControl extends commonControl
     
     public function deleteTopic()
     {
-        if ($this->checkPrivate() == true)
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        
+        if ($this->checkPrivate(0,$loginUid) == true)
         {
             if (isset($_POST['tid']) && is_numeric($_POST['tid']))
             {
@@ -479,7 +599,7 @@ Class doControl extends commonControl
                         'tid' => $tid
                     ));
                     
-                    if ($uid == $this->loginInfo['uid'])
+                    if ($uid == $loginUid)
                     {
                         $dID = $this->db->delete('roc_topic', array(
                             'tid' => $tid
@@ -488,7 +608,7 @@ Class doControl extends commonControl
                     else
                     {
                         $groupid = $this->db->get('roc_user', 'groupid', array(
-                            'uid' => $this->loginInfo['uid']
+                            'uid' => $loginUid
                         ));
                         
                         if ($groupid == 9)
@@ -499,7 +619,8 @@ Class doControl extends commonControl
                         }
                         else
                         {
-                            $this->showMsg('抱歉，您无权删除此主题', 'error');
+                            $this->echoAppJsonResult('抱歉，您无权删除此主题',array(),1);
+                            return;
                         }
                     }
                     
@@ -562,28 +683,32 @@ Class doControl extends commonControl
                         
                         $this->updateUserScore($uid, -$GLOBALS['sys_config']['scores']['topic'], 6);
                         
-                        $this->showMsg('删除成功', 'success');
+                        $this->echoAppJsonResult('删除成功',array(),0);
                     }
                     else
                     {
-                        $this->showMsg('删除失败，请重试', 'error');
+                        $this->echoAppJsonResult('删除失败，请重试',array(),2);
                     }
                 }
                 else
                 {
-                    $this->showMsg('此主题不存在或已删除', 'error');
+                    $this->echoAppJsonResult('此主题不存在或已删除',array(),3);
                 }
             }
         }
         else
         {
-            $this->showMsg('抱歉，您无权删除此主题', 'error');
+            $this->echoAppJsonResult('抱歉，您无权删除此主题', array(),4);
         }
     }
     
     public function deleteReply()
     {
-        if ($this->checkPrivate() == true)
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        
+        if ($this->checkPrivate(0,$loginUid) == true)
         {
             if (isset($_POST['pid']) && is_numeric($_POST['pid']))
             {
@@ -601,7 +726,7 @@ Class doControl extends commonControl
                         'pid' => $pid
                     ));
                     
-                    if ($uid == $this->loginInfo['uid'])
+                    if ($uid == $loginUid)
                     {
                         $dID = $this->db->delete('roc_reply', array(
                             'pid' => $pid
@@ -610,7 +735,7 @@ Class doControl extends commonControl
                     else
                     {
                         $groupid = $this->db->get('roc_user', 'groupid', array(
-                            'uid' => $this->loginInfo['uid']
+                            'uid' => $loginUid
                         ));
                         
                         if ($groupid == 9)
@@ -621,7 +746,8 @@ Class doControl extends commonControl
                         }
                         else
                         {
-                            $this->showMsg('抱歉，您无权删除此回复', 'error');
+                            $this->echoAppJsonResult('抱歉，您无权删除此回复',array(),1);
+                            return;
                         }
                     }
                     
@@ -645,28 +771,32 @@ Class doControl extends commonControl
                         
                         $this->updateUserScore($uid, -$GLOBALS['sys_config']['scores']['reply'], 7);
                         
-                        $this->showMsg('删除成功', 'success');
+                        $this->echoAppJsonResult('删除成功',array(),0);
                     }
                     else
                     {
-                        $this->showMsg('删除失败，请重试', 'error');
+                        $this->echoAppJsonResult('删除失败，请重试', array(),2);
                     }
                 }
                 else
                 {
-                    $this->showMsg('此回复不存在或已删除', 'error');
+                    $this->echoAppJsonResult('此回复不存在或已删除', array(),3);
                 }
             }
         }
         else
         {
-            $this->showMsg('抱歉，您无权删除此回复', 'error');
+            $this->echoAppJsonResult('抱歉，您无权删除此回复', array(),4);
         }
     }
     
     public function deleteFloor()
     {
-        if ($this->checkPrivate() == true)
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        
+        if ($this->checkPrivate(0,$loginUid) == true)
         {
             if (isset($_POST['id']) && is_numeric($_POST['id']))
             {
@@ -680,7 +810,7 @@ Class doControl extends commonControl
                         'id' => $id
                     ));
                     
-                    if ($uid == $this->loginInfo['uid'])
+                    if ($uid == $loginUid)
                     {
                         $dID = $this->db->delete('roc_floor', array(
                             'id' => $id
@@ -689,7 +819,7 @@ Class doControl extends commonControl
                     else
                     {
                         $groupid = $this->db->get('roc_user', 'groupid', array(
-                            'uid' => $this->loginInfo['uid']
+                            'uid' => $loginUid
                         ));
                         
                         if ($groupid == 9)
@@ -700,27 +830,28 @@ Class doControl extends commonControl
                         }
                         else
                         {
-                            $this->showMsg('抱歉，您无权删除此评论', 'error');
+                            $this->echoAppJsonResult('抱歉，您无权删除此评论',array(),1);
+                            return;
                         }
                     }
                     if ($dID > 0)
                     {
-                        $this->showMsg('删除成功', 'success');
+                        $this->echoAppJsonResult('删除成功', array(),0);
                     }
                     else
                     {
-                        $this->showMsg('删除失败，请重试', 'error');
+                        $this->echoAppJsonResult('删除失败，请重试', array(),2);
                     }
                 }
                 else
                 {
-                    $this->showMsg('此评论不存在或已删除', 'error');
+                    $this->echoAppJsonResult('此评论不存在或已删除', array(),3);
                 }
             }
         }
         else
         {
-            $this->showMsg('抱歉，您无权删除此评论', 'error');
+            $this->echoAppJsonResult('抱歉，您无权删除此评论', array(),4);
         }
     }
     
@@ -774,7 +905,11 @@ Class doControl extends commonControl
     
     public function favorTopic()
     {
-        if ($this->checkPrivate() == true)
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        
+        if ($this->checkPrivate(0,$loginUid) == true)
         {
             if (isset($_POST['tid'], $_POST['status']) && is_numeric($_POST['tid']) && is_numeric($_POST['status']))
             {
@@ -788,14 +923,14 @@ Class doControl extends commonControl
                 {
                     if ($this->db->has('roc_favorite', array(
                         'AND' => array(
-                            'uid' => $this->loginInfo['uid'],
+                            'uid' => $loginUid,
                             'tid' => $tid
                         )
                     )))
                     {
                         $resID = $this->db->delete('roc_favorite', array(
                             'AND' => array(
-                                'uid' => $this->loginInfo['uid'],
+                                'uid' => $loginUid,
                                 'tid' => $tid
                             )
                         ));
@@ -803,31 +938,43 @@ Class doControl extends commonControl
                     else
                     {
                         $resID = $this->db->insert('roc_favorite', array(
-                            'uid' => $this->loginInfo['uid'],
+                            'uid' => $loginUid,
                             'tid' => $tid
                         ));
                     }
                     
                     if ($resID > 0)
                     {
-                        $this->showMsg('操作成功', 'success', 1 - $status);
+                        if($status == 0){
+                            
+                            $this->echoAppJsonResult('收藏成功',array(),0);
+                            
+                        }else{
+                            
+                            $this->echoAppJsonResult('取消收藏',array(),0);
+
+                        }
                     }
                     else
                     {
-                        $this->showMsg('操作失败', 'error', 1 - $status);
+                        $this->echoAppJsonResult('操作失败', array(), 2);
                     }
                 }
             }
         }
         else
         {
-            $this->showMsg('您尚未登录，无权操作', 'error');
+            $this->echoAppJsonResult('您尚未登录，无权操作',array(),3);
         }
     }
     
     public function praiseTopic()
     {
-        if ($this->checkPrivate() == true)
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        
+        if ($this->checkPrivate(0,$loginUid) == true)
         {
             if (isset($_POST['tid'], $_POST['status']) && is_numeric($_POST['tid']) && is_numeric($_POST['status']))
             {
@@ -845,14 +992,14 @@ Class doControl extends commonControl
                     
                     if ($this->db->has('roc_praise', array(
                         'AND' => array(
-                            'uid' => $this->loginInfo['uid'],
+                            'uid' => $loginUid,
                             'tid' => $tid
                         )
                     )))
                     {
                         $resID = $this->db->delete('roc_praise', array(
                             'AND' => array(
-                                'uid' => $this->loginInfo['uid'],
+                                'uid' => $loginUid,
                                 'tid' => $tid
                             )
                         ));
@@ -864,7 +1011,7 @@ Class doControl extends commonControl
                     else
                     {
                         $resID = $this->db->insert('roc_praise', array(
-                            'uid' => $this->loginInfo['uid'],
+                            'uid' => $loginUid,
                             'tid' => $tid
                         ));
                         
@@ -877,24 +1024,28 @@ Class doControl extends commonControl
                     {
                         $this->updateUserScore($topicUid, $changed, $type);
                         
-                        $this->showMsg('操作成功', 'success', 1 - $status);
+                        $this->echoAppJsonResult('操作成功', array(), 0);
                     }
                     else
                     {
-                        $this->showMsg('操作失败', 'error', 1 - $status);
+                        $this->echoAppJsonResult('操作失败', array(), 1);
                     }
                 }
             }
         }
         else
         {
-            $this->showMsg('您尚未登录，无权操作', 'error');
+            $this->echoAppJsonResult('您尚未登录，无权操作', array(),2);
         }
     }
     
     public function follow()
     {
-        if ($this->checkPrivate() && isset($_POST['uid']) && is_numeric($_POST['uid']))
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        
+        if ($this->checkPrivate(0,$loginUid) && isset($_POST['uid']) && is_numeric($_POST['uid']))
         {
             $fuid = intval($_POST['uid']);
             
@@ -904,28 +1055,28 @@ Class doControl extends commonControl
             {
                 if ($this->db->has('roc_follow', array(
                     'AND' => array(
-                        'uid' => $this->loginInfo['uid'],
+                        'uid' => $loginUid,
                         'fuid' => $fuid
                     )
                 )))
                 {
                     $this->db->delete('roc_follow', array(
                         'AND' => array(
-                            'uid' => $this->loginInfo['uid'],
+                            'uid' => $loginUid,
                             'fuid' => $fuid
                         )
                     ));
                     
-                    $this->showMsg('取消关注成功', 'success', 1);
+                    $this->echoAppJsonResult('取消关注成功', array('status'=>0), 0);
                 }
                 else
                 {
                     $this->db->insert('roc_follow', array(
-                        'uid' => $this->loginInfo['uid'],
+                        'uid' => $loginUid,
                         'fuid' => $fuid
                     ));
                     
-                    $this->showMsg('关注成功', 'success', 0);
+                    $this->echoAppJsonResult('关注成功', array('status'=>1), 0);
                 }
             }
         }
@@ -933,34 +1084,42 @@ Class doControl extends commonControl
     
     public function doSign()
     {
-        if ($this->checkPrivate() == true && $_POST['do'] == 'doSign')
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        
+        if ($this->checkPrivate(0,$loginUid) == true)
         {
             if ($this->db->has('roc_score', array(
                 'AND' => array(
-                    'uid' => $this->loginInfo['uid'],
+                    'uid' => $loginUid,
                     'type' => 3,
                     'time[>]' => strtotime(date('Y-m-d', time()))
                 )
             )))
             {
-                $this->showMsg('您今天已经签到过啦~明天记得再来哦', 'error');
+                $this->echoAppJsonResult('您今天已经签到过啦~明天记得再来哦', array(),1);
             }
             else
             {
                 $signScore = $GLOBALS['sys_config']['scores']['sign'];
                 
-                $this->updateUserScore($this->loginInfo['uid'], $signScore, 3);
+                $this->updateUserScore($loginUid, $signScore, 3);
                 
-                $this->showMsg('签到成功~恭喜你获得 ' . $signScore . ' 积分', 'success', $signScore);
+                $this->echoAppJsonResult('签到成功~恭喜你获得 ' . $signScore . ' 积分', array(), 0);
             }
         }
     }
     
     public function deliverWhisper()
     {
-        if ($this->checkPrivate() == true)
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        
+        if ($this->checkPrivate(0,$loginUid) == true)
         {
-            if (isset($_POST['atuid'], $_POST['content']) && is_numeric($_POST['atuid']) && Utils::getStrlen($_POST['content']) < 250 && strlen($_POST['content']) > 0)
+            if (isset($_POST['atuid'], $_POST['content']) && is_numeric($_POST['atuid']) && Utils::getStrlen($_POST['content']) < 500 && strlen($_POST['content']) > 0)
             {
                 $atuid = intval($_POST['atuid']);
                 
@@ -971,14 +1130,14 @@ Class doControl extends commonControl
                 )))
                 {
                     $myScore = $this->db->get('roc_user', 'scores', array(
-                        'uid' => $this->loginInfo['uid']
+                        'uid' => $loginUid
                     ));
                     
                     if ($myScore - $GLOBALS['sys_config']['scores']['whisper'] >= 0)
                     {
                         $WID = $this->db->insert('roc_whisper', array(
                             'atuid' => $atuid,
-                            'uid' => $this->loginInfo['uid'],
+                            'uid' => $loginUid,
                             'content' => $content,
                             'posttime' => time(),
                             'isread' => 0,
@@ -987,100 +1146,98 @@ Class doControl extends commonControl
                         
                         if ($WID > 0)
                         {
-                            $this->updateUserScore($this->loginInfo['uid'], -$GLOBALS['sys_config']['scores']['whisper'], 4);
-                           
-                            $pushTitle = $this->loginInfo['username'].':给你发了一条私信';
-                   
-                            $this->pushService->pushMessageToMobile($pushTitle,'重要消息',1,array('whisper'=>$_POST['content']),'',$_POST['atuid']);
+                            $this->updateUserScore($loginUid, -$GLOBALS['sys_config']['scores']['whisper'], 4);
+                            
+                            $this->echoAppJsonResult('私信成功~', array(),0);
+                            
+                            $this->pushService->pushMessageToMobile('你有一条新私信','重要消息',1,array('whispter'=>$_POST['content']),'',$_POST['atuid']);
 
-                            $this->showMsg('私信成功~', 'success');
-                                
                         }
                         else
                         {
-                            $this->showMsg('传送失败，请重试', 'error');
+                            $this->echoAppJsonResult('传送失败，请重试', array(),1);
                         }
                     }
                     else
                     {
-                        $this->showMsg('您的积分不足，发送私信需消耗' . $GLOBALS['sys_config']['scores']['whisper'] . '积分', 'error');
+                        $this->echoAppJsonResult('您的积分不足，发送私信需消耗' . $GLOBALS['sys_config']['scores']['whisper'] . '积分', array(),2);
                     }
                 }
                 else
                 {
-                    $this->showMsg('该用户不存在', 'error');
+                    $this->echoAppJsonResult('该用户不存在', array(),3);
                 }
             }
             else
             {
-                $this->showMsg('请检车您的输入是否合法', 'error');
+                $this->echoAppJsonResult('请检车您的输入是否合法', array(),4);
             }
         }
         else
         {
-            $this->showMsg('您尚未登录，无权操作', 'error');
+            $this->echoAppJsonResult('您尚未登录，无权操作', array(),5);
         }
     }
     
     public function setEmail()
     {
-        if ($this->checkPrivate() == true)
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+
+        if ($this->checkPrivate(0,$loginUid) == true)
         {
-            if (isset($_POST['email'], $_POST['password']))
+            if (isset($_POST['email']))
             {
                 $email = strtolower(stripslashes(trim($_POST['email'])));
-                
-                $password = stripslashes(trim($_POST['password']));
-                
-                if ($email == '' || $password == '')
+                                
+                if ($email == '')
                 {
                     if ($email == '')
                     {
-                        $this->showMsg('邮箱不能为空', 'error', 1);
-                    }
-                    if ($password == '')
-                    {
-                        $this->showMsg('密码不能为空', 'error', 3);
+                        $this->echoAppJsonResult('邮箱不能为空', array(), 1);
+                        return;
                     }
                 }
                 
                 if (!Utils::checkEmailValidity($email))
                 {
-                    $this->showMsg('邮件地址不正确', 'error', 1);
+                    $this->echoAppJsonResult('邮件地址不正确', array(), 1);
+                    return;
                 }
                 
                 if ($this->db->has('roc_user', array(
                     'email' => $email
                 )))
                 {
-                    $this->showMsg('邮件地址已被占用', 'error', 1);
+                    $this->echoAppJsonResult('邮件地址已被占用', array(), 1);
+                    return;
                 }
                 
                 if ($this->db->has('roc_user', array(
                     'AND' => array(
-                        'uid' => $this->loginInfo['uid'],
-                        'password' => md5($password)
+                        'uid' => $loginUid,
                     )
                 )))
                 {
                     $resID = $this->db->update('roc_user', array(
                         'email' => $email
                     ), array(
-                        'uid' => $this->loginInfo['uid']
+                        'uid' => $loginUid
                     ));
                     
                     if ($resID > 0)
                     {
-                        $this->showMsg('邮箱设置成功', 'success');
+                        $this->echoAppJsonResult('邮箱设置成功',array(),0);
                     }
                     else
                     {
-                        $this->showMsg('邮箱设置失败', 'error');
+                        $this->echoAppJsonResult('邮箱设置失败', array(),4);
                     }
                 }
                 else
                 {
-                    $this->showMsg('密码验证失败，请重试', 'error', 1);
+                    $this->echoAppJsonResult('密码验证失败，请重试', array(), 5);
                 }
             }
         }
@@ -1088,7 +1245,11 @@ Class doControl extends commonControl
     
     public function setSignature()
     {
-        if ($this->checkPrivate() == true)
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+
+        if ($this->checkPrivate(0,$loginUid) == true)
         {
             if (isset($_POST['signature']))
             {
@@ -1096,27 +1257,29 @@ Class doControl extends commonControl
                 
                 if (empty($signature))
                 {
-                    $this->showMsg('个性签名不能为空', 'error', 1);
+                    $this->echoAppJsonResult('个性签名不能为空', array(), 1);
+                    return;
                 }
                 
                 if (Utils::getStrlen($signature) >= 32)
                 {
-                    $this->showMsg('个性签名不能超过32个字', 'error', 1);
+                    $this->echoAppJsonResult('个性签名不能超过32个字', array(), 1);
+                    return;
                 }
                 
                 $resID = $this->db->update('roc_user', array(
                     'signature' => $signature
                 ), array(
-                    'uid' => $this->loginInfo['uid']
+                    'uid' => $loginUid
                 ));
                 
                 if ($resID > 0)
                 {
-                    $this->showMsg('个性签名设置成功', 'success');
+                    $this->echoAppJsonResult('个性签名设置成功',array(),0);
                 }
                 else
                 {
-                    $this->showMsg('个性签名设置失败', 'error');
+                    $this->echoAppJsonResult('个性签名设置失败',array(),2);
                 }
             }
         }
@@ -1235,7 +1398,7 @@ Class doControl extends commonControl
         }
     }
     
-    private function doAtUser($content)
+    private function doAtUser($content,$loginUid)
     {
         $atUidArray = array();
         
@@ -1267,7 +1430,7 @@ Class doControl extends commonControl
                 }
                 else
                 {
-                    if ($userInfo['uid'] == $this->loginInfo['uid'])
+                    if ($userInfo['uid'] == $loginUid)
                     {
                         $content = str_ireplace('@' . $name . ' ', ' ', $content . ' ');
                     }
@@ -1299,20 +1462,22 @@ Class doControl extends commonControl
             
             if (time() - $lasttime < $allowTime)
             {
-                $this->showMsg('您太活跃了，防水策略生效中，请稍后再试', 'error');
+                return 1;
             }
+            
+            return 2;
         }
         else
         {
-            $this->showMsg('抱歉，请求非法！', 'error');
+            return 3;
         }
     }
     
-    private function checkPrivate($type = 0)
+    private function checkPrivate($type = 0,$requestUid)
     {
         if ($type == 0)
         {
-            if ($this->loginInfo['uid'] > 0)
+            if ($requestUid > 0)
             {
                 return true;
             }
@@ -1324,10 +1489,10 @@ Class doControl extends commonControl
         else
         {
             $groupid = $this->db->get('roc_user', 'groupid', array(
-                'uid' => $this->loginInfo['uid']
+                'uid' => $requestUid
             ));
             
-            if ($this->loginInfo['uid'] > 0 && $groupid != 0)
+            if ($requestUid > 0 && $groupid != 0)
             {
                 return true;
             }
@@ -1337,5 +1502,38 @@ Class doControl extends commonControl
             }
         }
     }
+    
+    private function echoAppJsonResult($msg,$resultDictionary = array(),$status){
+                        
+        $resultArray = array('status'=>$status,'data'=>$resultDictionary,'msg'=>$msg);
+        
+        echo json_encode($resultArray);
+        
+    }
+    
+    protected function validateToken(){
+        
+        if (isset($_POST['token'])){
+           
+            $validate = Secret::validateLoginToken($_POST['token']);
+        
+        if($validate){
+            
+            return $validate;
+            
+        }  else {
+           
+            $this->echoAppJsonResult('token非法', array(),1);
+                        
+            exit();
+        }
+        
+       }else{
+           
+           $this->echoAppJsonResult('非法请求', array(),1);
+                        
+            exit();
+       }
+    } 
 }
 ?>

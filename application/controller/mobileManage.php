@@ -6,7 +6,18 @@ Class manageControl extends commonControl
     public $per = 30;
     public function topTopic()
     {
-        $this->checkManagePrivate();
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        $groupId = $_POST['groupId'];
+        
+        $result = $this->checkManagePrivate($groupId,$loginUid);
+        
+        if($result == FALSE){
+            
+            $this->echoAppJsonResult('无管理权限',array(),1);
+            return;
+        }
         
         if (isset($_POST['tid'], $_POST['status']) && is_numeric($_POST['tid']) && is_numeric($_POST['status']))
         {
@@ -18,23 +29,34 @@ Class manageControl extends commonControl
             {
                 if ($status == 0)
                 {
-                    $this->showMsg('置顶成功', 'success', 1);
+                    $this->echoAppJsonResult('置顶成功', array(), 0);
                 }
                 else
                 {
-                    $this->showMsg('取消置顶成功', 'success', 0);
+                    $this->echoAppJsonResult('取消置顶成功', array(), 0);
                 }
             }
             else
             {
-                $this->showMsg('操作失败，请重试', 'error');
+                $this->echoAppJsonResult('操作失败，请重试', array(),2);
             }
         }
     }
     
     public function lockTopic()
     {
-        $this->checkManagePrivate();
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        $groupId = $_POST['groupId'];
+        
+        $result = $this->checkManagePrivate($groupId,$loginUid);
+        
+        if($result == FALSE){
+            
+            $this->echoAppJsonResult('无管理权限',array(),1);
+            return;
+        }
         
         if (isset($_POST['tid'], $_POST['status']) && is_numeric($_POST['tid']) && is_numeric($_POST['status']))
         {
@@ -46,16 +68,16 @@ Class manageControl extends commonControl
             {
                 if ($status == 0)
                 {
-                    $this->showMsg('锁定主题成功', 'success', 1);
+                    $this->echoAppJsonResult('锁定主题成功', array(), 0);
                 }
                 else
                 {
-                    $this->showMsg('解锁主题成功', 'success', 0);
+                    $this->echoAppJsonResult('解锁主题成功', array(), 0);
                 }
             }
             else
             {
-                $this->showMsg('操作失败，请重试', 'error');
+                $this->echoAppJsonResult('操作失败，请重试', array(),2);
             }
         }
     }
@@ -128,7 +150,19 @@ Class manageControl extends commonControl
     
     public function ban()
     {
-        $this->checkStationOwnerPrivate($_POST['status']);
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        $groupId = $_POST['groupId'];
+        
+        $result = $this->checkStationOwnerPrivate($groupId,$loginUid,$_POST['status']);
+        
+        if($result == FALSE){
+            
+            $this->echoAppJsonResult('无管理权限',array(),1);
+            
+            return;
+        }
         
         $uid = isset($_POST['uid']) && is_numeric($_POST['uid']) ? intval($_POST['uid']) : 0;
         
@@ -144,11 +178,11 @@ Class manageControl extends commonControl
                 'uid' => $uid
             ));
             
-            $this->showMsg('操作成功', 'success');
+            $this->echoAppJsonResult('操作成功', array(),0);
         }
         else
         {
-            $this->showMsg('操作失败，不存在该用户！', 'error');
+            $this->echoAppJsonResult('操作失败，不存在该用户！', array(),0);
         }
     }
     
@@ -219,11 +253,22 @@ Class manageControl extends commonControl
         header('location:' . ROOT . 'admin/index/type/link/');
     }
 
-    public function del_tag()
+    public function deleteTag()
     {
-        $this->checkManagePrivate();
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        $groupId = $_POST['groupId'];
+        
+        $result = $this->checkManagePrivate($groupId,$loginUid);
+        
+        if($result == FALSE){
+            
+            $this->echoAppJsonResult('无管理权限',array(),1);
+            return;
+        }
 
-        $tagid = isset($GLOBALS['Router']['params']) && is_numeric($GLOBALS['Router']['params']) ? intval($GLOBALS['Router']['params']) : 0;
+        $tagid = $_POST['tagId'];
 
         if ($this->db->has('roc_tag', array(
             'tagid' => $tagid
@@ -237,7 +282,7 @@ Class manageControl extends commonControl
                 'tagid' => $tagid
             ));
 
-            die('<script>alert(\'标签删除成功！\');history.go(-1);</script>');
+            $this->echoAppJsonResult('删除成功',array(),0);
         }
     }
     
@@ -324,20 +369,71 @@ Class manageControl extends commonControl
         }
     }
     
-    private function checkManagePrivate()
+    private function checkManagePrivate($groupId,$userId)
     {
-        if ($this->loginInfo['groupid'] != 9)
+        $userInfo = $this->getMemberInfo('uid', $userId);
+                
+        if (empty($userInfo['uid']))
         {
-            $this->showMsg('抱歉，权限不足！', 'error');
+            return FALSE;
+        }
+                
+        if ($groupId != 9)
+        {
+            return FALSE;
+        }else{
+            return TRUE;
         }
     }
     
-    private function checkStationOwnerPrivate($status)
+    private function checkStationOwnerPrivate($groupId,$userId,$status)
     {
-        if ($this->loginInfo['groupid'] != 8 && $status == 9)
+        $userInfo = $this->getMemberInfo('uid', $userId);
+                
+        if (empty($userInfo['uid']))
         {
-            $this->showMsg('抱歉，权限不足！,只有站长可以设置管理员', 'error');
+            return FALSE;
+        }
+        
+        if ($groupId != 8 && $status == 9)
+        {
+            return FALSE;
+        }else{
+            return TRUE;
         }
     }
+    
+    private function echoAppJsonResult($msg,$resultDictionary = array(),$status){
+                        
+        $resultArray = array('status'=>$status,'data'=>$resultDictionary,'msg'=>$msg);
+        
+        echo json_encode($resultArray);
+        
+    }
+    
+    protected function validateToken(){
+        
+        if (isset($_POST['token'])){
+           
+            $validate = Secret::validateLoginToken($_POST['token']);
+        
+        if($validate){
+            
+            return $validate;
+            
+        }  else {
+           
+            $this->echoAppJsonResult('token非法', array(),1);
+                        
+            exit();
+        }
+        
+       }else{
+           
+           $this->echoAppJsonResult('非法请求', array(),1);
+                        
+            exit();
+       }
+    } 
 }
 ?>
