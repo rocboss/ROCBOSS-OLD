@@ -292,10 +292,8 @@ Class mobileHomeControl extends commonControl
         )))
         {
             
-            $last = isset($_POST['last']) && intval($_POST['last']) > 0 ? intval($_POST['last']) : 0;
-            
-            $amount = isset($_POST['amount']) && intval($_POST['amount']) > 0 ? intval($_POST['amount']) : 30;
-            
+            $pageIndex = isset($_POST['pageIndex']) && intval($_POST['pageIndex']) > 0 ? intval($_POST['pageIndex']) : 0;
+                        
             $replyList = $this->db->select('roc_reply', array(
                 '[>]roc_user' => 'uid'
             ), array(
@@ -312,8 +310,8 @@ Class mobileHomeControl extends commonControl
                 'ORDER' => 'roc_reply.pid ASC',
                 
                 'LIMIT' => array(
-                    $last,
-                    $amount
+                    $this->per * ($pageIndex - 1),
+                    $this->per
                 )
             ));
             
@@ -321,7 +319,9 @@ Class mobileHomeControl extends commonControl
             {
                 $replyList[$key]['avatar'] = Image::getAvatarURL($value['uid'], 50);
                 
-                $replyList[$key]['content'] = $this->getPictures(Utils::parseUser(Utils::parseUrl(Filter::topicOut($value['content']))), $value['uid']);
+                $replyList[$key]['content'] = Filter::topicIn($value['content']);
+           
+                $replyList[$key]['pictures'] = $this->getPictures(Utils::parseUser(Utils::parseUrl(Filter::topicOut($value['content']))), $value['uid']);
                 
                 $replyList[$key]['posttime'] = Utils::formatTime($value['posttime']);
                 
@@ -355,8 +355,8 @@ Class mobileHomeControl extends commonControl
                 'ORDER' => 'roc_floor.id ASC',
                 
                 'LIMIT' => array(
-                    5 * $page,
-                    5
+                    3 * $page,
+                    3
                 )
             ));
             
@@ -531,6 +531,8 @@ Class mobileHomeControl extends commonControl
 
     public function getTodayTopSign()
     {        
+       $this->validateToken();
+        
        $signList = $this->db->select('roc_score', array(
             '[>]roc_user' => 'uid'
         ), array(
@@ -547,6 +549,11 @@ Class mobileHomeControl extends commonControl
             'LIMIT' => 32
         ));
        
+       foreach ($signList as $key => $value)
+       {
+          $signList[$key]['avatar'] = Image::getAvatarURL($signList[$key]['uid']);
+       }
+            
        $this->echoAppJsonResult('签到用户排行', $signList,0);
     }
     

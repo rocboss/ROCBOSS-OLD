@@ -210,7 +210,7 @@ Class adminControl extends commonControl
     
     private function checkManagePrivate($force = false)
     {
-        if ($this->loginInfo['groupid'] != 9)
+        if ($this->loginInfo['groupid'] < 8)
         {
             if ($force)
             {

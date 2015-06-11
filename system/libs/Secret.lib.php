@@ -135,5 +135,36 @@ class Secret
         $txt = str_replace('%252F', '%2F', $txt);
         return self::xxtea_decrypt(base64_decode(urldecode($txt)), $key);
     }
+    
+    public static function createMobileLoginToken() {
+        
+        $scretKey = 'WeRock';
+        
+        $timeString = time();
+     
+        $prepareString = $scretKey.'-'.$timeString;
+                
+        $token = Secret::encrypt($prepareString);
+        
+        return $token;
+    }
+    
+    public static function validateLoginToken($token){
+        
+        $decodeString = Secret::decrypt($token);
+        
+        $decodeArray = explode('-', $decodeString);
+        
+        $scretkey = $decodeArray[0];
+        
+        if($scretkey == 'WeRock'){
+            
+            return TRUE;
+            
+        }else{
+            
+            return FALSE;
+        }
+    }
 }
 ?>

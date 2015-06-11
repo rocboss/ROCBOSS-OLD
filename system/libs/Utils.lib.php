@@ -66,7 +66,7 @@ class Utils
         {
             return '昵称太长了';
         }
-        if (preg_match('/\s/', $nickname) || strpos($nickname,' '))
+        if (strpos($nickname,' '))
         {
             return '昵称不允许存在空格';
         }

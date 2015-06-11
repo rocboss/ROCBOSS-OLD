@@ -326,7 +326,7 @@ Class manageControl extends commonControl
     
     private function checkManagePrivate()
     {
-        if ($this->loginInfo['groupid'] != 9)
+        if ($this->loginInfo['groupid'] < 8)
         {
             $this->showMsg('抱歉，权限不足！', 'error');
         }

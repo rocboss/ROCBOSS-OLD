@@ -8,6 +8,8 @@ class Template
     public $cacheDir;
     public $cacheTime;
     public $data = array();
+    public $jsonArray = array();
+    
     public function __construct($CONFIG = NULL)
     {
         if ($CONFIG)
@@ -75,7 +77,25 @@ class Template
         
         include $_cache_path;
     }
-    public function fetch($tplFile)
+    
+    public function  displayJson($tplFile){
+        
+        $_cache_path = $this->cache_path($tplFile);
+        
+        if (!$this->is_cached($_cache_path))
+        {
+            $this->compile($this->tpl_path($tplFile), $_cache_path);
+        }
+        
+        unset($tplFile);
+        
+        extract($this->data);
+        
+        include $_cache_path;
+        
+    }
+
+        public function fetch($tplFile)
     {
         ob_start();
         
