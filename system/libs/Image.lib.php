@@ -80,11 +80,6 @@ class Image
     
     public static function avatarPath($uid)
     {
-        if (!is_dir('application/uploads/avatars/' . intval($uid / 1000) . '/'))
-        {
-            mkdir('application/uploads/avatars/' . intval($uid / 1000) . '/', 0777);
-        }
-
         return 'application/uploads/avatars/' . intval($uid / 1000) . '/' . $uid . '/';
     }
     
@@ -94,6 +89,19 @@ class Image
         
         return $avatarPath;
     }
+    
+    public static function homeThemeBackPath($uid)
+    {
+        return 'application/uploads/homeThemeBacks/' . intval($uid / 1000) . '/' . $uid;
+    }
+    
+    public static function getHomeThemeBackURL($uid, $size = 500)
+    {
+        $avatarPath = ROOT . self::homeThemeBackPath($uid) . $size . '.png';
+        
+        return $avatarPath;
+    }
+    
     public static function CreatDefaultAvatar($userId)
     {
         $avatar_dir = self::avatarPath($userId);
