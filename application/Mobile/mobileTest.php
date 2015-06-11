@@ -238,8 +238,7 @@
         <form action="/rocboss/mobileHome/getReplyList" method="post">
            token:<input type="text" name="token" value="zZDPYHZshlxueIjkB3VUgqe0Zw0kZfwG"> <br> 
            帖子Id: <input type="text" name="tid" > <br>
-           页码: <input type="text" name="last" > <br>
-           页面大小: <input type="text" name="amount" > <br>
+           页码: <input type="text" name="pageIndex" > <br>
            
            <input type="submit" name="确定"><br>
            
@@ -281,6 +280,90 @@
         查询热门帖子:<br>
         <form action="/rocboss/mobileHome/getHotTopics" method="post">
            token:<input type="text" name="token" value="zZDPYHZshlxueIjkB3VUgqe0Zw0kZfwG"> <br>            
+           <input type="submit" name="确定"><br>
+           
+        </form>
+        
+        查询签到榜单:<br>
+        <form action="/rocboss/mobileHome/getTodayTopSign" method="post">
+           token:<input type="text" name="token" value="zZDPYHZshlxueIjkB3VUgqe0Zw0kZfwG"> <br>            
+           <input type="submit" name="确定"><br>
+           
+        </form>
+        
+        锁住帖子:<br>
+        <form action="/rocboss/mobileManage/lockTopic" method="post">
+           token:<input type="text" name="token" value="zZDPYHZshlxueIjkB3VUgqe0Zw0kZfwG"> <br> 
+           用户Id: <input type="text" name="loginUserId" > <br>
+           用户组Id: <input type="text" name="groupId" > <br>
+           帖子Id: <input type="text" name="tid" > <br>
+           状态:(0,解锁，1锁定)<input type="text" name="status" > <br>
+           <input type="submit" name="确定"><br>
+        </form>
+        
+        置顶帖子:<br>
+        <form action="/rocboss/mobileManage/topTopic" method="post">
+           token:<input type="text" name="token" value="zZDPYHZshlxueIjkB3VUgqe0Zw0kZfwG"> <br> 
+           用户Id: <input type="text" name="loginUserId" > <br>
+           用户组Id: <input type="text" name="groupId" > <br>
+           帖子Id: <input type="text" name="tid" > <br>
+           状态:(0,置顶，1取消置顶)<input type="text" name="status" > <br>
+           <input type="submit" name="确定"><br>
+        </form>
+        
+        申请帖子锁定行为:<br>
+        <form action="/rocboss/mobileUser/applyLockTopic" method="post">
+           token:<input type="text" name="token" value="zZDPYHZshlxueIjkB3VUgqe0Zw0kZfwG"> <br> 
+           用户Id: <input type="text" name="loginUserId" > <br>
+           被申请用户角色:<input type="text" name="groupId" > <br>
+           被申请用户名:<input type="text" name="userName" > <br>
+           发帖者Id: <input type="text" name="userId" > <br>
+           帖子Id: <input type="text" name="tid" > <br>
+           帖子标题: <input type="text" name="topicTitle" > <br>
+           原因: <input type="text" name="reason" > <br>
+           状态:(0,申请解锁，1举报帖子)<input type="text" name="status" > <br>
+           <input type="submit" name="确定"><br>
+        </form>
+        
+        申请用户锁定行为:<br>
+        <form action="/rocboss/mobileUser/applyLockAction" method="post">
+           token:<input type="text" name="token" value="zZDPYHZshlxueIjkB3VUgqe0Zw0kZfwG"> <br> 
+           用户Id: <input type="text" name="loginUserId" > <br>
+           被申请用户角色:<input type="text" name="groupId" > <br>
+           被申请用户名:<input type="text" name="userName" > <br>
+           发帖者Id: <input type="text" name="userId" > <br>
+           原因: <input type="text" name="reason" > <br>
+           状态:(0,申请解锁，1举报此人)<input type="text" name="status" > <br>
+           <input type="submit" name="确定"><br>
+        </form>
+        
+        用户申请行为列表:<br>
+        <form action="/rocboss/mobileAdmin/userApplyList" method="post">
+           token:<input type="text" name="token" value="zZDPYHZshlxueIjkB3VUgqe0Zw0kZfwG"> <br> 
+           用户Id: <input type="text" name="loginUserId" > <br>
+           用户组Id: <input type="text" name="groupId" > <br>
+           状态:(0,申请解禁,1举报此人)<input type="text" name="status" > <br>
+           页码: <input type="text" name="pageIndex" > <br>
+           <input type="submit" name="确定"><br>
+           
+        </form>
+        
+        帖子申请行为:<br>
+        <form action="/rocboss/mobileAdmin/topicApplyList" method="post">
+           token:<input type="text" name="token" value="zZDPYHZshlxueIjkB3VUgqe0Zw0kZfwG"> <br> 
+           用户Id: <input type="text" name="loginUserId" > <br>
+           用户组Id: <input type="text" name="groupId" > <br>
+           状态:(0,申请解锁，1举报帖子)<input type="text" name="status" > <br>
+           页码: <input type="text" name="pageIndex" > <br>
+           <input type="submit" name="确定"><br>
+           
+        </form>
+        
+         搜索用户:<br>
+        <form action="/rocboss/mobileAdmin/searchUser" method="post">
+           token:<input type="text" name="token" value="zZDPYHZshlxueIjkB3VUgqe0Zw0kZfwG"> <br> 
+           关键字: <input type="text" name="keyword" > <br>
+           页码: <input type="text" name="pageIndex" > <br>
            <input type="submit" name="确定"><br>
            
         </form>

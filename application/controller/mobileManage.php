@@ -1,6 +1,6 @@
 <?php
 !defined('ROC') && exit('REFUSED!');
-Class manageControl extends commonControl
+Class mobileManageControl extends commonControl
 {
     public $page;
     public $per = 30;
@@ -369,6 +369,58 @@ Class manageControl extends commonControl
         }
     }
     
+    private function getMemberInfo($key, $value)
+    {
+        $memberArray = array();
+        
+        $DBArray = $this->db->get('roc_user', array(
+            'uid',
+            'username',
+            'email',
+            'signature',
+            'password',
+            'regtime',
+            'lasttime',
+            'qqid',
+            'scores',
+            'money',
+            'groupid'
+        ), array(
+            $key => $value
+        ));
+        
+        if (!empty($DBArray['uid']))
+        {
+            $memberArray['uid'] = $DBArray['uid'];
+            
+            $memberArray['avatar'] = Image::getAvatarURL($DBArray['uid']);
+            
+            $memberArray['username'] = $DBArray['username'];
+            
+            $memberArray['email'] = $DBArray['email'];
+            
+            $memberArray['signature'] = $DBArray['signature'];
+            
+            $memberArray['password'] = $DBArray['password'];
+            
+            $memberArray['regtime'] = date('Y年n月j日 H:i', $DBArray['regtime']);
+            
+            $memberArray['lasttime'] = date('Y年n月j日 H:i', $DBArray['lasttime']);
+            
+            $memberArray['scores'] = $DBArray['scores'];
+            
+            $memberArray['money'] = $DBArray['money'];
+            
+            $memberArray['qqid'] = $DBArray['qqid'];
+            
+            $memberArray['groupid'] = $DBArray['groupid'];
+            
+            $memberArray['groupname'] = Utils::getGroupName($DBArray['groupid']);
+        }
+        
+        return $memberArray;
+    }
+    
     private function checkManagePrivate($groupId,$userId)
     {
         $userInfo = $this->getMemberInfo('uid', $userId);
@@ -378,7 +430,7 @@ Class manageControl extends commonControl
             return FALSE;
         }
                 
-        if ($groupId != 9)
+        if ($groupId < 8)
         {
             return FALSE;
         }else{

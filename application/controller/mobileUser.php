@@ -78,6 +78,112 @@ Class mobileUserControl extends commonControl
             $this->echoAppJsonResult('用户详情',$finalUserInfo,0);
         }
     }
+        
+    public function applyLockAction(){
+        
+        $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+                
+        $requestUid = $_POST['userId'];
+        
+        $groupId = $_POST['groupId'];
+        
+        $requestUserName = $_POST['userName'];
+        
+        $reason = $_POST['reason'];
+                
+        //0 解禁 1禁言,举报的时候可以用，某用户举报了一个用户，就可以用申请禁言
+        $status = $_POST['status'];
+        
+        //用户行为解禁
+        $type = 1;
+        
+        $addDBArray = array(
+            
+            'user_id' => $requestUid,
+                        
+            'reason' => $reason,
+            
+            'topic_title' => '',
+            
+            'tid' => '',
+            
+            'create_time' => time(),
+            
+            'status' => $status,
+            
+            'username' => $requestUserName,
+            
+            'groupid' => $groupId,
+            
+            'type' => $type
+                
+        );
+        
+        $result = $this->db->insert('roc_apply',$addDBArray);
+        
+        if($result){
+           $this->echoAppJsonResult('操作成功',array('apply_id'=>$result),0);
+        }  else {
+           $this->echoAppJsonResult('服务器错误',array(),1);
+        }
+    }
+    
+    public function applyLockTopic(){
+        
+       $this->validateToken();
+        
+        $loginUid = $_POST['loginUserId'];
+        
+        $requestUid = $_POST['userId'];
+        
+        $groupId = $_POST['groupId'];
+        
+        $requestUserName = $_POST['userName'];
+        
+        $reason = $_POST['reason'];
+        
+        $tid = $_POST['tid'];
+        
+        $topicTitle = $_POST['topicTitle'];
+                
+        //0 解禁 1禁言,举报某个帖子可以用，某用户举报了一个帖子，就可以用申请锁帖或者删帖
+        $status = $_POST['status'];
+        
+        //帖子行为
+        $type = 2;
+        
+        $addDBArray = array(
+            
+            'user_id' => $requestUid,
+                        
+            'reason' => $reason,
+            
+            'topic_title' => $topicTitle,
+            
+            'tid' => $tid,
+            
+            'create_time' => time(),
+            
+            'status' => $status,
+            
+            'username' => $requestUserName,
+            
+            'groupid' => $groupId,
+            
+            'type' => $type
+                
+        );
+        
+        $result = $this->db->insert('roc_apply',$addDBArray);
+        
+        if($result){
+           $this->echoAppJsonResult('操作成功',array('apply_id'=>$result),0);
+        }  else {
+           $this->echoAppJsonResult('服务器错误',array(),1);
+        }
+    }
 
     public function topics()
     {
