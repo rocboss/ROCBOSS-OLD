@@ -1,53 +1,62 @@
 <?php
+# 开启session
 session_start();
 
-# 开发调试时建议设为 E_ALL ，运营时请设为 0
+# 正式运营时关闭所有调试
 error_reporting(0);
 
-date_default_timezone_set('PRC');
+# 引入框架入口文件
+require 'system/Entrance.php';
 
-define('ROC', TRUE);
+# 引入数据库配置文件
+require 'app/config/db_config.php';
 
-# 定义项目根目录，若是子目录则为 '/子目录名/'
-define('ROOT', '/');
+# 引入路由规则配置文件
+require 'app/config/router_config.php';
 
-# 引入框架核心文件
-require 'system/Roc.php';
+# 实例化ROC框架，动态调用
+$app = ROC::app();
 
-# 引入框架路由文件
-require 'system/Router.php';
+# 路由分发（注册规则）
+foreach ($router_config as $path => $rule)
+{   
+    $app->route($path, $rule);
+}
 
-# 载入应用配置
-require 'application/config/config.php';
+# 是否匹配到路由规则
+$isExistRule = true;
 
-# 载入系统类库
-Roc::loadSystemLibs(array(
-	# 系统加密类
-	'Secret',
+# 路由分发（实例化Class）
+foreach ($router_config as $path => $rule)
+{
+    $nowRoute = $app->getNowRoute();
 
-	# 系统过滤类
-	'Filter',
+    if (is_array($nowRoute) && $rule == $nowRoute)
+    {
+        # 清除之前注册的路由
+        $app->clearRoutes();
 
-	# 系统数据库操作类
-	'DB',
+        # 实例化Class
+        $class = '\app\controller\\'.$rule[0];
 
-	# 系统模板引擎类
-	'Template',
+        $rule[0] = new $class($app, $db_config);
 
-	# 系统图像类
-	'Image',
+        # 只注册当前URL对应的路由
+        $app->route($path, $rule);
 
-	# 系统分页类
-	'Page',
+        $isExistRule = true;
 
-	# 系统工具类
-	'Utils'
-));
+        break;
+    }
 
-# 获取路由
-$Router = Router::getRouter();
+    $isExistRule = false;
+}
 
-# 开启框架
-Roc::Start($Router);
+if (!$isExistRule)
+{
+    $app->clearRoutes();
+}
 
+# 启动框架
+$app->start();
 ?>
