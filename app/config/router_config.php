@@ -3,7 +3,7 @@
 # 路由配置项
 $router_config = array(
     # 首页
-    '/(@page:[0-9])' => array('home', 'index'),
+    '/(@page:[0-9]+)' => array('home', 'index'),
 
     # 帖子详情页
     '/read/@tid:[0-9]+' => array('home', 'read'),
