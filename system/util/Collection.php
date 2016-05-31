@@ -1,5 +1,4 @@
 <?php
-# 允许你既可以以使用数组的方式，也能以使用对象的方式来访问数据。
 
 namespace system\util;
 
@@ -7,7 +6,7 @@ class Collection implements \ArrayAccess, \Iterator, \Countable
 {
     private $data;
     
-    public function __construct(array $data = array())
+    public function __construct(array $data = [])
     {
         $this->data = $data;
     }
@@ -108,7 +107,6 @@ class Collection implements \ArrayAccess, \Iterator, \Countable
     
     public function clear()
     {
-        $this->data = array();
+        $this->data = [];
     }
 }
-?>

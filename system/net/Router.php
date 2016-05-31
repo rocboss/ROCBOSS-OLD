@@ -1,11 +1,10 @@
 <?php
-# 负责将一个HTTP讲求发送到指定的函数进行处理，试图将请求的URL和一系列用户定义的URL范式进行匹配。
 
 namespace system\net;
 
 class Router
 {
-    protected $routes = array();
+    protected $routes = [];
     
     protected $index = 0;
     
@@ -16,16 +15,15 @@ class Router
     
     public function clear()
     {
-        $this->index = 0;
-        
-        $this->routes = array();
+        $this->routes = [];
     }
     
     public function map($pattern, $callback, $pass_route = false)
     {
         $url     = $pattern;
-        
-        $methods = array('*');
+        $methods = array(
+            '*'
+        );
         
         if (strpos($pattern, ' ') !== false)
         {
@@ -66,4 +64,3 @@ class Router
         $this->index = 0;
     }
 }
-?>

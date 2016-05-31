@@ -2,74 +2,155 @@ SET NAMES utf8;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
+--  Table structure for `roc_article`
+-- ----------------------------
+DROP TABLE IF EXISTS `roc_article`;
+CREATE TABLE `roc_article` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '文章ID',
+  `uid` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT '用户ID',
+  `poster_id` int(11) NOT NULL DEFAULT '0' COMMENT '封面ID',
+  `title` varchar(64) NOT NULL DEFAULT '' COMMENT '文章标题',
+  `content` text NOT NULL COMMENT '文章内容',
+  `praise_num` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '点赞数',
+  `collection_num` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '收藏数',
+  `post_time` int(11) NOT NULL DEFAULT '0' COMMENT '发布时间',
+  `is_open` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '是否审核开放',
+  `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否有效，0删除，1正常，2待审核',
+  PRIMARY KEY (`id`),
+  KEY `uid` (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+
+-- ----------------------------
 --  Table structure for `roc_attachment`
 -- ----------------------------
 DROP TABLE IF EXISTS `roc_attachment`;
 CREATE TABLE `roc_attachment` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `uid` mediumint(8) unsigned NOT NULL,
-  `path` varchar(128) NOT NULL,
-  `time` int(11) unsigned NOT NULL,
-  `tid` int(11) unsigned NOT NULL DEFAULT '0',
-  `pid` int(11) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`,`uid`,`tid`,`pid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '附件ID',
+  `uid` mediumint(8) unsigned NOT NULL COMMENT '用户ID',
+  `path` varchar(255) NOT NULL COMMENT '路径',
+  `mime_type` char(16) NOT NULL DEFAULT '' COMMENT '附件mimeType',
+  `type` tinyint(2) unsigned NOT NULL DEFAULT '1' COMMENT '附件类型，1图片',
+  `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
+  PRIMARY KEY (`id`),
+  KEY `uid` (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
---  Table structure for `roc_favorite`
+--  Table structure for `roc_club`
 -- ----------------------------
-DROP TABLE IF EXISTS `roc_favorite`;
-CREATE TABLE `roc_favorite` (
-  `fid` mediumint(8) NOT NULL AUTO_INCREMENT,
-  `uid` mediumint(8) NOT NULL,
-  `tid` int(11) NOT NULL,
-  PRIMARY KEY (`fid`),
-  KEY `fuid` (`fid`),
-  KEY `id` (`tid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
+DROP TABLE IF EXISTS `roc_club`;
+CREATE TABLE `roc_club` (
+  `cid` mediumint(8) unsigned NOT NULL AUTO_INCREMENT COMMENT '分类ID',
+  `club_name` varchar(16) NOT NULL DEFAULT '' COMMENT '分类名',
+  `sort` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT '分类排序',
+  `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
+  PRIMARY KEY (`cid`),
+  KEY `sort` (`sort`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
---  Table structure for `roc_floor`
+--  Records of `roc_club`
 -- ----------------------------
-DROP TABLE IF EXISTS `roc_floor`;
-CREATE TABLE `roc_floor` (
+BEGIN;
+INSERT INTO `roc_club` VALUES ('1', '默认分类', '0', '1'), ('2', '奇闻共享', '0', '1'), ('3', '天下趣事', '0', '1'), ('4', '灌水专区', '0', '1'), ('5', '商业合作', '0', '1');
+COMMIT;
+
+-- ----------------------------
+--  Table structure for `roc_collection`
+-- ----------------------------
+DROP TABLE IF EXISTS `roc_collection`;
+CREATE TABLE `roc_collection` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `pid` int(11) unsigned NOT NULL,
-  `uid` mediumint(8) unsigned NOT NULL,
-  `content` varchar(120) NOT NULL,
-  `posttime` int(11) NOT NULL,
-  PRIMARY KEY (`id`,`pid`,`uid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+  `uid` mediumint(8) unsigned NOT NULL COMMENT '用户ID',
+  `tid` int(11) unsigned NOT NULL COMMENT '话题ID',
+  `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
+  PRIMARY KEY (`id`),
+  KEY `uid` (`valid`,`uid`,`tid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+
+-- ----------------------------
+--  Table structure for `roc_config`
+-- ----------------------------
+DROP TABLE IF EXISTS `roc_config`;
+CREATE TABLE `roc_config` (
+  `key` varchar(32) NOT NULL,
+  `value` varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (`key`),
+  UNIQUE KEY `key` (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+
+-- ----------------------------
+--  Records of `roc_config`
+-- ----------------------------
+BEGIN;
+INSERT INTO `roc_config` VALUES ('description', '最前沿的社区交流，最纯粹的技术切磋，一款优雅而简约的垂直微社区。'), ('keywords', 'BBS,微社区'), ('rockey', '3f#23fHN31&9@1'), ('sitename', 'ROCBOSS');
+COMMIT;
 
 -- ----------------------------
 --  Table structure for `roc_follow`
 -- ----------------------------
 DROP TABLE IF EXISTS `roc_follow`;
 CREATE TABLE `roc_follow` (
-  `uid` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `fuid` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `uid` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT '关注者UID',
+  `fuid` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT '被关注者UID',
   PRIMARY KEY (`uid`,`fuid`),
   KEY `uid` (`uid`),
   KEY `fuid` (`fuid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+
+-- ----------------------------
+--  Table structure for `roc_link`
+-- ----------------------------
+DROP TABLE IF EXISTS `roc_link`;
+CREATE TABLE `roc_link` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `name` char(12) NOT NULL DEFAULT '' COMMENT '链接名称',
+  `url` varchar(255) NOT NULL DEFAULT '' COMMENT '链接URL',
+  `sort` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '排序',
+  `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否有效，1有效，0无效',
+  PRIMARY KEY (`id`),
+  KEY `sort` (`sort`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+
+-- ----------------------------
+--  Records of `roc_link`
+-- ----------------------------
+BEGIN;
+INSERT INTO `roc_link` VALUES ('1', 'ROCBOSS', 'https://www.rocboss.com', '50', '1'), ('2', 'ROC\'sMe', 'http://rocs.me', '30', '1'), ('3', 'Google', 'https://www.google.com', '10', '1');
+COMMIT;
+
+-- ----------------------------
+--  Table structure for `roc_message`
+-- ----------------------------
+DROP TABLE IF EXISTS `roc_message`;
+CREATE TABLE `roc_message` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '私信ID',
+  `at_uid` mediumint(8) unsigned NOT NULL COMMENT '目标用户ID',
+  `uid` mediumint(8) unsigned NOT NULL COMMENT '发送用户ID',
+  `content` varchar(255) NOT NULL DEFAULT '' COMMENT '私信内容',
+  `post_time` int(11) unsigned NOT NULL COMMENT '私信时间',
+  `del_uid` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT '率先删除者ID',
+  `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
+  PRIMARY KEY (`id`),
+  KEY `message` (`at_uid`,`uid`,`del_uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
 --  Table structure for `roc_notification`
 -- ----------------------------
 DROP TABLE IF EXISTS `roc_notification`;
 CREATE TABLE `roc_notification` (
-  `nid` mediumint(8) NOT NULL AUTO_INCREMENT,
-  `atuid` mediumint(8) NOT NULL,
-  `uid` mediumint(8) NOT NULL,
-  `tid` int(11) NOT NULL,
-  `pid` int(11) NOT NULL,
-  `fid` int(11) unsigned NOT NULL,
-  `isread` tinyint(1) unsigned zerofill NOT NULL DEFAULT '0',
-  PRIMARY KEY (`nid`),
-  KEY `atuid` (`atuid`,`isread`,`nid`),
-  KEY `tid` (`tid`),
-  KEY `pid` (`pid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '通知ID',
+  `at_uid` mediumint(8) unsigned NOT NULL COMMENT '通知对象ID',
+  `uid` mediumint(8) unsigned NOT NULL COMMENT '用户ID',
+  `tid` int(11) unsigned NOT NULL COMMENT '主题ID',
+  `pid` int(11) unsigned NOT NULL COMMENT '通知的资源ID',
+  `post_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '发布时间',
+  `is_read` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否已读，0未读，1已读',
+  `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
+  PRIMARY KEY (`id`),
+  KEY `at_uid` (`at_uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
 --  Table structure for `roc_praise`
@@ -78,27 +159,45 @@ DROP TABLE IF EXISTS `roc_praise`;
 CREATE TABLE `roc_praise` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `uid` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `tid` int(11) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`,`uid`,`tid`),
+  `tid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '主题ID',
+  `article_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '文章ID',
+  `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否有效，0删除，1有效',
+  PRIMARY KEY (`id`),
   KEY `uid` (`uid`),
-  KEY `fuid` (`tid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
+  KEY `tid` (`tid`),
+  KEY `article_id` (`article_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+
+-- ----------------------------
+--  Table structure for `roc_relation`
+-- ----------------------------
+DROP TABLE IF EXISTS `roc_relation`;
+CREATE TABLE `roc_relation` (
+  `attachment_id` int(11) unsigned NOT NULL,
+  `res_id` int(11) unsigned NOT NULL COMMENT '目标源ID',
+  `type` tinyint(2) unsigned NOT NULL COMMENT '目标源类型，1主题，2回复',
+  `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
+  PRIMARY KEY (`res_id`,`type`,`attachment_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
 --  Table structure for `roc_reply`
 -- ----------------------------
 DROP TABLE IF EXISTS `roc_reply`;
 CREATE TABLE `roc_reply` (
-  `pid` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `tid` int(11) unsigned NOT NULL DEFAULT '0',
-  `uid` mediumint(8) NOT NULL,
-  `content` varchar(250) NOT NULL,
-  `client` varchar(16) NOT NULL,
-  `posttime` int(11) NOT NULL,
-  PRIMARY KEY (`pid`,`tid`,`uid`),
-  KEY `tid` (`tid`,`pid`),
-  KEY `uid` (`uid`,`pid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+  `pid` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '回复ID',
+  `tid` int(11) unsigned NOT NULL COMMENT '主题ID',
+  `at_pid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '引用回复ID',
+  `uid` mediumint(8) unsigned NOT NULL COMMENT '用户ID',
+  `content` text NOT NULL COMMENT '回复内容',
+  `client` char(20) NOT NULL DEFAULT '' COMMENT '客户端标识',
+  `location` char(20) NOT NULL DEFAULT '' COMMENT '发表地区',
+  `post_time` int(11) unsigned NOT NULL COMMENT '发布时间',
+  `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
+  PRIMARY KEY (`pid`),
+  KEY `tid` (`tid`),
+  KEY `uid` (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
 --  Table structure for `roc_score`
@@ -106,128 +205,99 @@ CREATE TABLE `roc_reply` (
 DROP TABLE IF EXISTS `roc_score`;
 CREATE TABLE `roc_score` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `uid` mediumint(8) unsigned NOT NULL,
-  `changed` smallint(6) NOT NULL,
-  `remain` mediumint(8) NOT NULL,
-  `type` tinyint(2) NOT NULL,
-  `time` int(11) unsigned NOT NULL,
-  PRIMARY KEY (`id`,`uid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
-
--- ----------------------------
---  Table structure for `roc_system`
--- ----------------------------
-DROP TABLE IF EXISTS `roc_system`;
-CREATE TABLE `roc_system` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(32) NOT NULL,
-  `value` text,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=21 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
-
--- ----------------------------
---  Records of `roc_system`
--- ----------------------------
-BEGIN;
-INSERT INTO `roc_system` VALUES ('1', 'sitename', '站点名'), ('2', 'keywords', '关键词1 关键词2 关键词3'), ('3', 'description', '您的网站描述'), ('4', 'rockey', '39d3#32k%d&2890'), ('5', 'ad', '这里是广告位'), ('6', 'join_switch', '1'), ('7', 'scores_register', '25'), ('8', 'scores_topic', '2'), ('9', 'scores_reply', '1'), ('10', 'scores_praise', '1'), ('11', 'scores_whisper', '5'), ('12', 'scores_sign', '10'), ('13', 'appid', ''), ('14', 'appkey', ''), ('15', 'notice', '这是公告'), ('16', 'theme', 'rocboss'), ('17', 'smtp_server', ''), ('18', 'smtp_port', ''), ('19', 'smtp_user', ''), ('20', 'smtp_password', '');
-COMMIT;
-
--- ----------------------------
---  Table structure for `roc_tag`
--- ----------------------------
-DROP TABLE IF EXISTS `roc_tag`;
-CREATE TABLE `roc_tag` (
-  `tagid` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `tagname` varchar(16) NOT NULL,
-  `used` int(11) unsigned NOT NULL,
-  PRIMARY KEY (`tagid`,`tagname`,`used`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+  `trade_no` varchar(32) NOT NULL DEFAULT '' COMMENT '支付宝订单号',
+  `tid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '所属主题ID',
+  `uid` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT '变化者用户ID',
+  `changed` mediumint(8) NOT NULL DEFAULT '0' COMMENT '变动积分',
+  `remain` int(11) NOT NULL DEFAULT '0' COMMENT '剩余积分',
+  `reason` varchar(200) NOT NULL DEFAULT '' COMMENT '变动缘由',
+  `add_user` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT '操作者ID',
+  `add_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '变动时间',
+  `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
+  PRIMARY KEY (`id`),
+  KEY `INDEX_USER` (`uid`,`valid`),
+  KEY `INDEX_TOPIC` (`tid`,`changed`,`valid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
 --  Table structure for `roc_topic`
 -- ----------------------------
 DROP TABLE IF EXISTS `roc_topic`;
 CREATE TABLE `roc_topic` (
-  `tid` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` mediumint(8) NOT NULL,
-  `title` varchar(64) NOT NULL,
-  `content` text NOT NULL,
-  `comments` mediumint(8) NOT NULL DEFAULT '0',
-  `client` varchar(16) DEFAULT NULL,
-  `istop` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  `islock` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  `posttime` int(11) NOT NULL,
-  `lasttime` int(11) NOT NULL,
-  PRIMARY KEY (`tid`,`uid`,`title`),
-  KEY `uid` (`uid`,`tid`),
-  KEY `cid` (`lasttime`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
-
--- ----------------------------
---  Table structure for `roc_topic_tag_connection`
--- ----------------------------
-DROP TABLE IF EXISTS `roc_topic_tag_connection`;
-CREATE TABLE `roc_topic_tag_connection` (
-  `tid` int(11) unsigned NOT NULL,
-  `tagid` int(11) unsigned NOT NULL,
-  PRIMARY KEY (`tid`,`tagid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
+  `tid` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '话题ID',
+  `cid` mediumint(8) unsigned NOT NULL COMMENT '分类ID',
+  `uid` mediumint(8) unsigned NOT NULL COMMENT '用户ID',
+  `title` varchar(128) NOT NULL DEFAULT '' COMMENT '话题标题',
+  `content` text NOT NULL COMMENT '内容',
+  `praise_num` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '点赞数',
+  `collection_num` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '收藏数',
+  `comment_num` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '评论数',
+  `location` char(20) NOT NULL DEFAULT '' COMMENT '发表地区',
+  `client` char(20) NOT NULL DEFAULT '' COMMENT '客户端',
+  `post_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '发布时间',
+  `edit_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '最后编辑时间',
+  `last_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '最后回复时间',
+  `is_essence` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '0普通，1精华',
+  `is_lock` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '0正常，1锁帖',
+  `is_top` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '0普通，1置顶',
+  `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
+  PRIMARY KEY (`tid`),
+  KEY `cid` (`cid`),
+  KEY `uid` (`uid`),
+  KEY `last_time` (`last_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
 --  Table structure for `roc_user`
 -- ----------------------------
 DROP TABLE IF EXISTS `roc_user`;
 CREATE TABLE `roc_user` (
-  `uid` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
-  `username` char(26) NOT NULL,
-  `email` char(36) NOT NULL,
-  `signature` varchar(32) NOT NULL,
-  `password` char(32) NOT NULL,
-  `regtime` int(11) NOT NULL,
-  `lasttime` int(11) NOT NULL,
-  `qqid` char(32) NOT NULL,
-  `scores` mediumint(8) unsigned NOT NULL,
-  `money` mediumint(8) unsigned NOT NULL,
-  `groupid` tinyint(2) unsigned NOT NULL DEFAULT '1',
+  `uid` mediumint(8) unsigned NOT NULL AUTO_INCREMENT COMMENT '用户ID',
+  `email` char(32) NOT NULL DEFAULT '' COMMENT '邮箱',
+  `phone` char(11) NOT NULL DEFAULT '' COMMENT '手机号码',
+  `username` char(32) NOT NULL COMMENT '用户名',
+  `password` char(32) NOT NULL DEFAULT '' COMMENT 'MD5后的密码',
+  `score` mediumint(8) NOT NULL DEFAULT '0' COMMENT '用户积分',
+  `reg_time` int(11) unsigned NOT NULL COMMENT '注册时间',
+  `last_time` int(11) NOT NULL COMMENT '最后活跃时间',
+  `qq_openid` char(32) NOT NULL DEFAULT '' COMMENT 'QQ授权openID',
+  `weibo_openid` char(32) NOT NULL DEFAULT '' COMMENT '微博授权openID',
+  `client_id` char(32) NOT NULL DEFAULT '' COMMENT 'ClientID，用于APP推送',
+  `client_os` char(16) NOT NULL DEFAULT '' COMMENT 'APP操作系统OS',
+  `token` char(32) NOT NULL DEFAULT '' COMMENT '客户端Token',
+  `expire_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '超时时间',
+  `groupid` tinyint(2) unsigned NOT NULL DEFAULT '1' COMMENT '用户组ID',
+  `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
   PRIMARY KEY (`uid`),
-  UNIQUE KEY `nickname` (`username`),
-  KEY `email` (`email`),
-  KEY `qqid` (`qqid`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+  UNIQUE KEY `username` (`valid`,`username`),
+  KEY `qq` (`valid`,`qq_openid`),
+  KEY `weibo` (`valid`,`weibo_openid`),
+  KEY `email` (`valid`,`email`),
+  KEY `phone` (`valid`,`phone`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
 --  Records of `roc_user`
 -- ----------------------------
 BEGIN;
-INSERT INTO `roc_user` VALUES ('1', 'admin', 'admin@admin', '我是管理员', 'e10adc3949ba59abbe56e057f20f883e', '1432384146', '1432384146', '', '5000', '0', '9');
+INSERT INTO `roc_user` VALUES ('1', 'admin@admin.com', '18866668888', 'admin', 'f5bb0c8de146c67b44babbf4e6584cc0', '5000', '1464624000', '1464624000', '', '', '', '', '', '0', '99', '1');
 COMMIT;
-
--- ----------------------------
---  Table structure for `roc_user_reset`
--- ----------------------------
-DROP TABLE IF EXISTS `roc_user_reset`;
-CREATE TABLE `roc_user_reset` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `uid` mediumint(8) unsigned NOT NULL,
-  `code` char(16) NOT NULL,
-  `time` int(11) unsigned NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
 
 -- ----------------------------
 --  Table structure for `roc_whisper`
 -- ----------------------------
 DROP TABLE IF EXISTS `roc_whisper`;
 CREATE TABLE `roc_whisper` (
-  `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
-  `atuid` mediumint(8) unsigned NOT NULL,
-  `uid` mediumint(8) unsigned NOT NULL,
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `at_uid` mediumint(8) unsigned NOT NULL COMMENT '目标用户ID',
+  `uid` mediumint(8) unsigned NOT NULL COMMENT '发送者ID',
   `content` varchar(255) NOT NULL,
-  `posttime` int(11) NOT NULL,
-  `isread` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  `del_flag` mediumint(8) unsigned NOT NULL,
+  `post_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '私信时间',
+  `is_read` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '是否已读，0未读，1已读',
+  `del_flag` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT '首删者ID',
+  `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
   PRIMARY KEY (`id`),
-  KEY `atuid` (`atuid`,`isread`,`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+  KEY `uid` (`at_uid`,`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 SET FOREIGN_KEY_CHECKS = 1;
