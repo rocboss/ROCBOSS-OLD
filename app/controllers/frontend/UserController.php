@@ -1480,7 +1480,7 @@ class UserController extends BaseController
                 }
             }
 
-            $reply['avatar'] = Roc::controller('api\User')->getAvatar($reply['uid']);
+            $reply['avatar'] = Roc::controller('frontend\User')->getAvatar($reply['uid']);
 
             $reply['add_time'] = $reply['post_time'];
 

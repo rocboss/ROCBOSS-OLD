@@ -158,7 +158,7 @@ class IndexController extends BaseController
                     'count' => Roc::model('relation')->getRelation($reply['pid'], 2, 'count')
                 ];
 
-                $reply['avatar'] = Roc::controller('api\User')->getAvatar($reply['uid']);
+                $reply['avatar'] = Roc::controller('frontend\User')->getAvatar($reply['uid']);
 
                 $reply['add_time'] = $reply['post_time'];
 
@@ -169,7 +169,7 @@ class IndexController extends BaseController
 
             foreach ($topic['praise']['rows'] as &$praise)
             {
-                $praise['avatar'] = Roc::controller('api\User')->getAvatar($praise['uid']);
+                $praise['avatar'] = Roc::controller('frontend\User')->getAvatar($praise['uid']);
             }
 
             parent::renderBase(['active' => 'read', 'pageTitle' => (!empty($topic) ? $topic['title'] : '')]);
