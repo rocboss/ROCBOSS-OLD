@@ -377,64 +377,6 @@ class IndexController extends BaseController
     }
 
     /**
-     * ROCBOSS源码下载
-     * @method download
-     * @return [type]   [description]
-     */
-    public static function download()
-    {
-        $uid = Roc::controller('frontend\User')->getloginInfo()['uid'];
-
-        if ($uid > 0)
-        {
-            $user = Roc::model('user')->getByUid($uid);
-
-            if (empty($user))
-            {
-                die('<script>alert(\'Access Denied. Only For VIP3\');</script>');
-            }
-
-            $groupid = $user['groupid'];
-
-            if ($groupid >= 2)
-            {
-                header("Content-type: application/octet-stream");
-                header("Content-Disposition: attachment; filename=rocboss_v2.2.0_u_".$uid.".zip");
-                readfile('https://dn-rocboss.qbox.me/rocboss.zxc.zip?'.time());
-            }
-            else
-            {
-                die('<script>alert(\'Access Denied. Only For VIP3\');</script>');
-            }
-        }
-        else
-        {
-            die('<script>alert(\'Access Denied. Only For VIP3\');</script>');
-        }
-    }
-
-    /**
-     * ROCBOSS OLD数据迁移同步
-     * @method actionSynchronize
-     * @return [type]            [description]
-     */
-    public static function actionSynchronize()
-    {
-        // 临时关闭
-        exit;
-        $url = 'https://dn-roc.qbox.me/';
-
-        $attachments = Roc::db()->from('roc_attachment')->where(['id <= ' => 995])->select(['id', 'path'])->many();
-
-        if (!empty($attachments)) {
-            foreach ($attachments as $key => $attachment) {
-                Roc::db()->from('roc_topic')->where(['tid >' => 0])->update("content = replace(content, '[:".$attachment['id']."]', '<img src=\"".$url.str_replace('app/uploads/pictures/', '', $attachment['path'])."-800\"/><br />')")->execute();
-                Roc::db()->from('roc_reply')->where(['pid >' => 0])->update("content = replace(content, '[:".$attachment['id']."]', '<img src=\"".$url.str_replace('app/uploads/pictures/', '', $attachment['path'])."-800\"/><br />')")->execute();
-            }
-        }
-    }
-
-    /**
      * 获取排序类型
      * @param  [type] $sort [description]
      * @return [type]       [description]
