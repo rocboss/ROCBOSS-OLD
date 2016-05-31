@@ -19,7 +19,7 @@ class Geetest
 
         $this->appKey = $appKey;
     }
-    
+
     /**
      * 判断极验服务器是否down机
      *
@@ -29,7 +29,7 @@ class Geetest
     {
         $url = "http://api.geetest.com/register.php?gt=".$this->appId;
 
-        $this->challenge = $this->sendRequest($url);
+        $this->challenge = md5($this->sendRequest($url).$this->appKey);
 
         if (strlen($this->challenge) != 32)
         {
@@ -78,7 +78,7 @@ class Geetest
         }
         return TRUE;
     }
-    
+
     private function sendRequest($url)
     {
         if (function_exists('curl_exec'))
@@ -108,7 +108,7 @@ class Geetest
         }
         return $data;
     }
-    
+
     /**
      *解码随机参数
      *
@@ -150,7 +150,7 @@ class Geetest
                 $key[$item] = $value;
             }
         }
-        
+
         for ($j = 0; $j < strlen($string); $j++)
         {
             $res += $key[$array_value[$j]];
@@ -158,8 +158,8 @@ class Geetest
         $res = $res - $this->decodeRandBase($challenge);
         return $res;
     }
-    
-    
+
+
     /**
      *
      * @param $x_str
@@ -178,7 +178,7 @@ class Geetest
         $result = ($result < 40) ? 40 : $result;
         return $result;
     }
-    
+
     /**
      *
      * @param full_bg_index
@@ -189,7 +189,7 @@ class Geetest
     {
         $full_bg_name = substr(md5($full_bg_index), 0, 9);
         $bg_name = substr(md5($img_grp_index), 10, 9);
-        
+
         $answer_decode = "";
         // 通过两个字符串奇数和偶数位拼接产生答案位
         for ($i = 0; $i < 9; $i++)
@@ -207,10 +207,10 @@ class Geetest
         $x_pos = $this->get_x_pos_from_str($x_decode);
         return $x_pos;
     }
-    
+
     /**
      * 输入的两位的随机数字,解码出偏移量
-     * 
+     *
      * @param challenge
      * @return
      */
@@ -227,10 +227,10 @@ class Geetest
         $decodeRes = $tempArray['0'] * 36 + $tempArray['1'];
         return $decodeRes;
     }
-    
+
     /**
      * 得到答案
-     * 
+     *
      * @param validate
      * @return
      */
@@ -258,9 +258,9 @@ class Geetest
         {
             return 0;
         }
-        
+
     }
-    
+
     public function postRequest($url, $postdata = null)
     {
         $data = http_build_query($postdata);
