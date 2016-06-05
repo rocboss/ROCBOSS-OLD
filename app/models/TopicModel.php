@@ -234,4 +234,17 @@ class TopicModel extends Model
 
         return $this->_db->affected_rows;
     }
+
+    // 裁剪字符串
+    public static function cutSubstr($str_cut, $length = 64)
+    {
+        if (mb_strlen(trim($str_cut), 'utf8') > $length)
+        {
+            return trim(mb_substr($str_cut, 0, $length, 'utf-8')) . '...';
+        }
+        else
+        {
+            return trim($str_cut);
+        }
+    }
 }

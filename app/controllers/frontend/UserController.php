@@ -740,7 +740,7 @@ class UserController extends BaseController
             {
                 $rows['unread_notification'][] = [
                     'id' => $notification['id'],
-                    'title' => $notification['username'].'在主题 “'.Roc::controller('api\Topic')->cutSubstr($notification['title'], 15).'” '.($notification['pid'] > 0 ? '下的回复' : '').'中提到了你',
+                    'title' => $notification['username'].'在主题 “'.Roc::model('topic')->cutSubstr($notification['title'], 15).'” '.($notification['pid'] > 0 ? '下的回复' : '').'中提到了你',
                     'time' => parent::formatTime($notification['post_time']),
                     'tid' => $notification['tid'],
                     'pid' => $notification['pid']
