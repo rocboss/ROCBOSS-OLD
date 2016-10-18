@@ -352,13 +352,13 @@ class IndexController extends BaseController
         // 返回数据格式
         $data = [
             'rows' => [],
-            'q' => $q,
+            'q' => Roc::filter()->topicInWeb($query->q),
             'page' => $page,
             'per' => self::$per,
             'total' => 0
         ];
 
-        $condition = ['roc_topic.valid' => 1, 'roc_topic.title %' => '%'.$q.'%'];
+        $condition = ['roc_topic.valid' => 1, 'roc_topic.title %' => '%'.Roc::filter()->topicInWeb($query->q).'%'];
         $data['rows'] = Roc::model('topic')->getList(($page-1)*self::$per, self::$per, $condition, ['sortDESC', ['tid']]);
 
         if (!empty($data['rows']))
