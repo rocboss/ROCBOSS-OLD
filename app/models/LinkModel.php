@@ -8,7 +8,7 @@ class LinkModel extends Model
     public function getList()
     {
         return $this->_db->from($this->_table)
-                        ->where(['valid'=>1])
+                        ->where(['valid' => 1])
                         ->sortDESC('sort')
                         ->sortASC('id')
                         ->select(['id', 'name', 'url', 'sort'])

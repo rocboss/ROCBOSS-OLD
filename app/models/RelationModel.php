@@ -6,26 +6,21 @@ class RelationModel extends Model
 
     public function addRelation($res_id, $attachment_id, $uid, $type)
     {
-        if (is_array($attachment_id) && !empty($attachment_id))
-        {
-            foreach ($attachment_id as $a_id)
-            {
+        if (is_array($attachment_id) && !empty($attachment_id)) {
+            foreach ($attachment_id as $a_id) {
                 $this->addRelation($res_id, $a_id, $uid, $type);
             }
-        }
-        else if (is_numeric($attachment_id) && $attachment_id > 0)
-        {
+        } else if (is_numeric($attachment_id) && $attachment_id > 0) {
             $attachment = Roc::model('attachment')->getAttachment($attachment_id, $uid);
 
-            if (!empty($attachment))
-            {
+            if (!empty($attachment)) {
                 $this->_db->from($this->_table)
-                        ->insert([
-                            'attachment_id' => $attachment_id,
-                            'res_id' => $res_id,
-                            'type' => $type,
-                            'valid' => 1
-                        ])->execute();
+                    ->insert([
+                        'attachment_id' => $attachment_id,
+                        'res_id' => $res_id,
+                        'type' => $type,
+                        'valid' => 1
+                    ])->execute();
             }
         }
     }

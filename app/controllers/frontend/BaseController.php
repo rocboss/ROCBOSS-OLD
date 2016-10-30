@@ -31,7 +31,8 @@ class BaseController extends Controller
         '10407' => '密码错误',
         '10408' => '尝试次数过多，请稍后再试',
         '10409' => '该账户已绑定QQ',
-        '10410' => '该账户已绑定微博'
+        '10410' => '该账户已绑定微博',
+        '10411' => '不开放注册',
     ];
 
     /**
@@ -39,6 +40,8 @@ class BaseController extends Controller
      */
     protected static function renderBase(array $params)
     {
+        $theme = in_array(Roc::request()->cookies->light, ['black', 'white']) ? Roc::request()->cookies->light : 'white';
+
         Roc::render('_header', [
             'pageTitle' => isset($params['pageTitle']) ? $params['pageTitle'] : '',
             'active' => $params['active'],
@@ -48,6 +51,7 @@ class BaseController extends Controller
                     'description' => Roc::get('sys.config')['description']
                 ],
             'loginInfo' => Roc::controller('frontend\User')->getloginInfo(),
+            'theme' => $theme,
         ], 'headerLayout');
 
         Roc::render('_footer', [], 'footerLayout');
@@ -89,30 +93,23 @@ class BaseController extends Controller
     {
         $showTime = date('Y', $unixTime) . "年" . date('n', $unixTime) . "月" . date('j', $unixTime) . "日";
 
-        if (date('Y', $unixTime) == date('Y'))
-        {
+        if (date('Y', $unixTime) == date('Y')) {
             $showTime = date('n', $unixTime) . "月" . date('j', $unixTime) . "日 " . date('H:i', $unixTime);
-
-            if (date('n.j', $unixTime) == date('n.j'))
-            {
+            if (date('n.j', $unixTime) == date('n.j')) {
                 $timeDifference = time() - $unixTime + 1;
 
-                if ($timeDifference < 30)
-                {
+                if ($timeDifference < 30) {
                     return "刚刚";
                 }
-                if ($timeDifference >= 30 && $timeDifference < 60)
-                {
+                if ($timeDifference >= 30 && $timeDifference < 60) {
                     return $timeDifference . "秒前";
                 }
-                if ($timeDifference >= 60 && $timeDifference < 3600)
-                {
+                if ($timeDifference >= 60 && $timeDifference < 3600) {
                     return floor($timeDifference / 60) . "分钟前";
                 }
                 return date('H:i', $unixTime);
             }
-            if (date('n.j', ($unixTime + 86400)) == date('n.j'))
-            {
+            if (date('n.j', ($unixTime + 86400)) == date('n.j')) {
                 return "昨天 " . date('H:i', $unixTime);
             }
         }
@@ -140,8 +137,7 @@ class BaseController extends Controller
      */
     public static function getNumVal($value, $default = 0, $force = false)
     {
-        if ($force)
-        {
+        if ($force) {
             return is_numeric($value) && intval($value) > 0 ? intval($value) : $default;
         }
 
@@ -157,10 +153,8 @@ class BaseController extends Controller
      */
     public static function sendSms($tplId, $phone, $content)
     {
-        if (Roc::get('sms.switch'))
-        {
+        if (Roc::get('sms.switch')) {
             $sendUrl = 'http://v.juhe.cn/sms/send';
-
             $smsConf = [
                 'key' => Roc::get('sms.appkey'),
                 'mobile'    => $phone,
@@ -169,24 +163,16 @@ class BaseController extends Controller
             ];
 
             $content = self::juheCurl($sendUrl, $smsConf, 1);
-
-            if ($content)
-            {
+            if ($content) {
                 $result = json_decode($content,true);
 
                 $errorCode = $result['error_code'];
-
-                if ($errorCode == 0)
-                {
+                if ($errorCode == 0) {
                     return $result['result']['sid'];
-                }
-                else
-                {
+                } else {
                     return ['status' => 'error', 'data' => '短信发送失败('.$errorCode.')：'.$result['reason']];
                 }
-            }
-            else
-            {
+            } else {
                 return ['status' => 'error', 'data' => '请求发送短信失败'];
             }
         }
@@ -220,49 +206,52 @@ class BaseController extends Controller
         $httpInfo = [];
 
         $ch = curl_init();
-
         curl_setopt($ch, CURLOPT_HTTP_VERSION , CURL_HTTP_VERSION_1_1);
-
         curl_setopt($ch, CURLOPT_USERAGENT , 'Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22');
-
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT , 30);
-
         curl_setopt($ch, CURLOPT_TIMEOUT , 30);
-
         curl_setopt($ch, CURLOPT_RETURNTRANSFER , true);
 
-        if ($ispost)
-        {
+        if ($ispost) {
             curl_setopt($ch, CURLOPT_POST , true);
-
             curl_setopt($ch, CURLOPT_POSTFIELDS , $params);
-
             curl_setopt($ch, CURLOPT_URL , $url);
-        }
-        else
-        {
-            if($params)
-            {
+        } else {
+            if($params) {
                 curl_setopt($ch, CURLOPT_URL , $url.'?'.$params);
-            }
-            else
-            {
+            } else {
                 curl_setopt($ch, CURLOPT_URL , $url);
             }
         }
-        $response = curl_exec($ch);
 
-        if ($response === FALSE)
-        {
+        $response = curl_exec($ch);
+        if ($response === FALSE) {
             return false;
         }
 
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        $httpInfo = array_merge( $httpInfo , curl_getinfo($ch));
-
+        $httpInfo = array_merge($httpInfo , curl_getinfo($ch));
         curl_close($ch);
 
         return $response;
+    }
+
+    /**
+     * 获取GUID
+     * @method getGuid
+     * @return [type]  [description]
+     */
+    protected static function getGuid($sand)
+    {
+        $charId = strtoupper(md5(uniqid($sand.mt_rand(), true)));
+
+        $hyphen = chr(45); // "-"
+        $uuid = substr($charId, 0, 8).$hyphen
+            .substr($charId, 8, 4).$hyphen
+            .substr($charId, 12, 4).$hyphen
+            .substr($charId, 16, 4).$hyphen
+            .substr($charId, 20, 12);
+
+        return $uuid;
     }
 }

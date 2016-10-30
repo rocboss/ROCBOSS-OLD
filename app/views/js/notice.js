@@ -1,42 +1,125 @@
 define(function(require, exports, module) {
-    var $ = require("jquery");
-    var bootstrap = require("bootstrap");
-    var vue = require("vue");
-    var layer = require("layer");
-    var _csrf;
+    var $ = require("jquery"),
+        bootstrap = require("bootstrap"),
+        vue = require("vue"),
+        layer = require("layer"),
+        common = require("js/common"),
+        _csrf;
     layer.config({
-        path: '/app/views/js/vendor/layer/'
+        path: '/app/views/vendor/layer/'
+    });
+    common.ready();
+    $(document).ready(function() {
+        _csrf = $('meta[name=_csrf]').attr('content');
     });
     exports.init = function(config) {
-        var unread_notification = config.unread_notification;
-        var unread_whisper = config.unread_whisper;
-        var notification = config.notification;
-        var whisper = config.whisper;
-        var isForMe = true;
+        var page = 1;
+        var hash = document.location.hash;
+        var hasHash = hash.replace("#", "") != '';
+
+        Vue.directive('tooltip', function() {
+            $("[data-toggle='tooltip']").tooltip('destroy');
+            $("[data-toggle='tooltip']").tooltip();
+        });
         tpl = new Vue({
-            el: '#notice-list',
+            el: '#rocboss-app',
             data: {
-                unread_notification: unread_notification,
-                unread_whisper: unread_whisper,
-                notification: notification,
-                whisper: whisper,
-                isForMe: isForMe
+                unread: config.unread,
+                notice: [],
+                whisper: [],
+                nowTab: hasHash ? hash.replace("#", "") : 'unread'
+            },
+            methods: {
+                changeTab: function(e, t) {
+                    var o = $(e.target).html();
+                    $(e.target).attr('disabled', 'disabled');
+                    $(e.target).html('<i class="fa fa-spinner fa-spin"></i>');
+                    $.get('/notice/change-type/' + t, function(data) {
+                        if (data.status == 'success') {
+                            if (t == 'unread') {tpl.unread = data.data.rows;}
+                            if (t == 'notice') {tpl.notice = data.data.rows;}
+                            if (t == 'whisper') {tpl.whisper = data.data.rows;}
+                            tpl.nowTab = t;
+                        }
+                        $(e.target).html(o);
+                        $(e.target).removeAttr('disabled');
+                    }, 'json')
+                },
+                doRead: function(type, id, tid, pid, uid) {
+                    $.post('/do/read/'+type, {
+                        id: id,
+                        _csrf: _csrf
+                    }, function(data) {
+                        if (data.status == 'success') {
+                            $("#"+type+"-"+id).hide('fast');
+                            if (type == 'notice' && typeof(tid) != 'undefined') {
+                                window.location.href = '/read/'+tid+(typeof(pid) != 'undefined' ? '#reply-'+pid : '');
+                            }
+                            if (type == 'whisper' && typeof(uid) != 'undefined') {
+                                window.location.href = '/chat-with-'+uid;
+                            }
+                        }
+                    }, 'json');
+                },
+                loadMoreNotice: function(e) {
+                    e.preventDefault();
+                    page ++;
+                    var that = e.target;
+                    var o = $(that).html();
+                    $(that).attr('disabled', 'disabled');
+                    $(that).html('<i class="fa fa-spinner fa-spin"></i> 加载中...');
+                    $.get('/get/notice/'+page, function(data) {
+                        $(that).html(o);
+                        if (data.status == 'success') {
+                            tpl.notice = tpl.notice.concat(data.data.rows);
+                            if (data.data.rows.length != 0) {
+                                $(that).removeAttr('disabled');
+                            } else {
+                                $(that).html('已加载全部');
+                                setTimeout(function() {
+                                    $(that).html(o);
+                                    $(that).removeAttr('disabled');
+                                }, 3000);
+                            }
+                        } else {
+                            layer.msg(data.data, {icon: 2});
+                            $(that).removeAttr('disabled');
+                        }
+                    }, 'json');
+                },
+                loadMoreWhisper: function(e) {
+                    e.preventDefault();
+                    page ++;
+                    var that = e.target;
+                    var o = $(that).html();
+                    $(that).attr('disabled', 'disabled');
+                    $(that).html('<i class="fa fa-spinner fa-spin"></i> 加载中...');
+                    $.get('/get/whisper/'+page, function(data) {
+                        $(that).html(o);
+                        if (data.status == 'success') {
+                            tpl.whisper = tpl.whisper.concat(data.data.rows);
+                            if (data.data.rows.length != 0) {
+                                $(that).removeAttr('disabled');
+                            } else {
+                                $(that).html('已加载全部');
+                                setTimeout(function() {
+                                    $(that).html(o);
+                                    $(that).removeAttr('disabled');
+                                }, 3000);
+                            }
+                        } else {
+                            layer.msg(data.data, {icon: 2});
+                            $(that).removeAttr('disabled');
+                        }
+                    }, 'json');
+                }
             }
         });
+        if (hasHash) {
+            tpl.changeTab(this, hash.replace("#", ""));
+        }
         $(document).ready(function() {
-            $("#notice-list").show();
-            _csrf = $('meta[name=_csrf]').attr('content');
-            $(".do-read").on('click', function(event) {
-                var that = this;
-                $.post('/do/read/'+$(that).data('type'), {
-                    id: $(that).data('id'),
-                    _csrf: _csrf
-                }, function(data) {
-                    if (data.status == 'success') {
-                        $("#"+$(that).data('type')+"-"+$(that).data('id')).hide('fast');
-                    }
-                }, 'json');
-            });
+
             $(".switch-whisper").on('click', function(event) {
                 var type = $(this).data('type');
                 tpl.isForMe = type > 0 ? false : true;

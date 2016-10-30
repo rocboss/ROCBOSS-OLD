@@ -11,16 +11,16 @@
         <meta name="_csrf" content="{:md5(Roc::request()->cookies->roc_secure)}">
         <script src="{:'/'.Roc::get('system.views.path').'/'}admin/js/jquery.min.js"></script>
         <script src="{:'/'.Roc::get('system.views.path').'/'}admin/js/bootstrap.min.js"></script>
-        <script src="{:'/'.Roc::get('system.views.path').'/'}js/vendor/vue.min.js"></script>
-        <script src="{:'/'.Roc::get('system.views.path').'/'}js/vendor/layer/layer.js"></script>
-        <script src="{:'/'.Roc::get('system.views.path').'/'}js/vendor/laypage.js"></script>
+        <script src="{:'/'.Roc::get('system.views.path').'/'}vendor/vue.min.js"></script>
+        <script src="{:'/'.Roc::get('system.views.path').'/'}vendor/layer/layer.js"></script>
+        <script src="{:'/'.Roc::get('system.views.path').'/'}vendor/laypage.js"></script>
         <script src="{:'/'.Roc::get('system.views.path').'/'}admin/js/app.js"></script>
 
         <!--[if lt IE 9]>
           <script src="{:'/'.Roc::get('system.views.path').'/'}admin/js/html5shiv.min.js"></script>
           <script src="{:'/'.Roc::get('system.views.path').'/'}admin/js/respond.min.js"></script>
         <![endif]-->
-        <link rel="stylesheet" type="text/css" href="{:'/'.Roc::get('system.views.path').'/'}admin/css/common.css" />
+        <link rel="stylesheet" type="text/css" href="{:'/'.Roc::get('system.views.path').'/'}admin/css/common.css?v=2.2.1.23" />
         <link rel="stylesheet" type="text/css" href="{:'/'.Roc::get('system.views.path').'/'}admin/css/bootstrap.min.css" />
         <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css">
     </head>

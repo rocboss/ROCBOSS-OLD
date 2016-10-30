@@ -4,10 +4,39 @@ namespace frontend;
 
 use \Controller;
 use \Roc;
-
+use \UserModel;
+use \ClubModel;
+use \LinkModel;
+use \ScoreModel;
+use \TopicModel;
+use \ReplyModel;
+use \FollowModel;
+use \WhisperModel;
+use \RelationModel;
+use \ArticleModel;
+use \AttachmentModel;
+use \WithdrawModel;
 class IndexController extends BaseController
 {
     public static $per = 20;
+
+    /**
+     * 切换明暗主题
+     * @method turnLight
+     * @return [type]    [description]
+     */
+    public static function turnLight()
+    {
+        $status = in_array(Roc::request()->cookies->light, ['black', 'white']) ? Roc::request()->cookies->light : 'white';
+
+        if ($status == 'black') {
+            setcookie('light', 'white', time() + 86400 * 30, '/', NULL, Roc::request()->secure, true);
+        } else {
+            setcookie('light', 'black', time() + 86400 * 30, '/', NULL, Roc::request()->secure, true);
+        }
+
+        echo json_encode(['status' => 'success']);
+    }
 
     /**
      * 首页
@@ -15,27 +44,24 @@ class IndexController extends BaseController
      * @param  [type] $page [description]
      * @return [type]       [description]
      */
-    public static function index($cid, $page)
+    public static function index($cid = 0, $page = 1)
     {
         $cid = parent::getNumVal($cid, 0, true);
-
         $page = parent::getNumVal($page, 1, true);
-
         $sort = self::getSort(Roc::request()->cookies->topic_sort);
-
         $data = self::getTopicList($cid, $page, $sort);
 
         parent::renderBase(['active' => 'index-'.$cid]);
 
         Roc::render('index', [
             'data' => $data,
-            'clubs' => Roc::model('club')->getList(),
+            'clubs' => ClubModel::m()->getList(),
             'statistic' => [
-                'user' => Roc::model('user')->getTotal(['valid' => 1]),
-                'topic' => Roc::model('topic')->getTotal(['valid' => 1]),
-                'article' => Roc::model('article')->getTotal(['valid' => 1])
+                'user' => UserModel::m()->getTotal(['valid' => 1]),
+                'topic' => TopicModel::m()->getTotal(['valid' => 1]),
+                'article' => ArticleModel::m()->getTotal(['valid' => 1])
             ],
-            'links' => Roc::model('link')->getList()
+            'links' => LinkModel::m()->getList()
         ]);
     }
 
@@ -47,18 +73,18 @@ class IndexController extends BaseController
     public static function search()
     {
         $query = Roc::request()->query;
-        $page = $query->page > 1 ? $query->page : 1;
+        $page = $query->page > 1 ? intval($query->page) : 1;
         $error = '';
         $data = [
             'rows' => [],
-            'q' => $query->q,
+            'q' => Roc::filter()->topicInWeb($query->q),
             'page' => $page,
             'per' => self::$per,
             'total' => 0
         ];
 
         if (strlen($query->q) >= 2) {
-            $data = self::searchTopicList($query->q, $page);
+            $data = self::searchTopicList(Roc::filter()->topicInWeb($query->q), $page);
         } else {
             $error = '搜索关键字太短，要不少于两个字符哦~';
         }
@@ -78,109 +104,89 @@ class IndexController extends BaseController
     public static function read($tid)
     {
         $uid = Roc::controller('frontend\User')->getloginInfo()['uid'];
+        $topic = TopicModel::m()->getByTid($tid);
 
-        $topic = Roc::model('topic')->getByTid($tid);
-
-        if (!empty($topic))
-        {
+        if (!empty($topic)) {
             $topic['title'] = Roc::filter()->topicOut($topic['title']);
-
             $topic['content'] = Roc::filter()->topicOut($topic['content']);
-
             $topic['avatar'] = Roc::controller('frontend\User')->getAvatar($topic['uid']);
-
             $topic['add_time'] = $topic['post_time'];
-
             $topic['post_time'] = parent::formatTime($topic['post_time']);
-
             $topic['edit_time'] = parent::formatTime($topic['edit_time']);
-
             $topic['last_time'] = parent::formatTime($topic['last_time']);
 
-            $relation = array_map([__CLASS__, 'getAttachmentID'], Roc::model('relation')->getRelation($topic['tid'], 1));
+            $topic['owner_statistic'] = [
+                'topic' => TopicModel::m()->getTotal(['uid' => $topic['uid'], 'valid' => 1]),
+                'reply' => ReplyModel::m()->getTotal(['uid' => $topic['uid'], 'valid' => 1]),
+                'fans' => FollowModel::m()->getFansCount(['fuid' => $topic['uid']]),
+            ];
+
+            $relation = array_map([__CLASS__, 'getAttachmentID'], RelationModel::m()->getRelation($topic['tid'], 1));
 
             // 主题所带图片(APP单独附图)
             $topic['images'] = [
-                'rows' => Roc::model('attachment')->getAttachments($relation),
-                'count' => Roc::model('relation')->getRelation($topic['tid'], 1, 'count')
+                'rows' => AttachmentModel::m()->getAttachments($relation),
+                'count' => RelationModel::m()->getRelation($topic['tid'], 1, 'count')
             ];
 
             // 主题下赞
             $topic['praise'] = [
-                'rows' => Roc::model('topic')->getPraiseList($topic['tid']),
-                'hasPraise' => Roc::model('topic')->getPraiseDetail($topic['tid'], $uid) > 0 ? true : false
+                'rows' => TopicModel::m()->getPraiseList($topic['tid']),
+                'hasPraise' => TopicModel::m()->getPraiseDetail($topic['tid'], $uid) > 0 ? true : false
             ];
 
             // 主题下打赏
             $topic['reward'] = [
-                'rows' => Roc::model('topic')->getRewardList($topic['tid']),
+                'rows' => TopicModel::m()->getRewardList($topic['tid']),
             ];
 
             // 主题是否收藏
-            $topic['hasCollection'] = Roc::model('topic')->getCollectionDetail($topic['tid'], $uid) > 0 ? true : false;
+            $topic['hasCollection'] = TopicModel::m()->getCollectionDetail($topic['tid'], $uid) > 0 ? true : false;
 
             // 主题下回复
             $topic['reply'] = [
-                'rows' => Roc::model('reply')->getListByTid($topic['tid']),
-                'count' => Roc::model('reply')->getListByTid($topic['tid'], 'count')
+                'rows' => ReplyModel::m()->getListByTid($topic['tid']),
+                'count' => ReplyModel::m()->getListByTid($topic['tid'], 'count')
             ];
 
-            if (!empty($topic['reward']['rows']))
-            {
-                foreach ($topic['reward']['rows'] as &$reward)
-                {
+            if (!empty($topic['reward']['rows'])) {
+                foreach ($topic['reward']['rows'] as &$reward) {
                     $reward['add_time'] = parent::formatTime($reward['add_time']);
                 }
             }
 
             if (!empty($topic['reply']['rows']))
-
-            foreach ($topic['reply']['rows'] as &$reply)
-            {
-                $relation = array_map([__CLASS__, 'getAttachmentID'], Roc::model('relation')->getRelation($reply['pid'], 2));
-
-                $reply['content'] = Roc::filter()->topicOut($reply['content']);
-
-                if ($reply['at_pid'] > 0)
-                {
-                    $reply['at_reply'] = Roc::model('reply')->getReply($reply['at_pid'], $reply['tid']);
-
-                    if (!empty($reply['at_reply']))
-                    {
-                        $reply['at_reply']['content'] = self::cutSubstr(Roc::filter()->topicOut($reply['at_reply']['content']));
-
-                        $reply['at_reply']['post_time'] = parent::formatTime($reply['at_reply']['post_time']);
+                foreach ($topic['reply']['rows'] as &$reply) {
+                    $relation = array_map([__CLASS__, 'getAttachmentID'], RelationModel::m()->getRelation($reply['pid'], 2));
+                    $reply['content'] = Roc::filter()->topicOut($reply['content']);
+                    if ($reply['at_pid'] > 0) {
+                        $reply['at_reply'] = ReplyModel::m()->getReply($reply['at_pid'], $reply['tid']);
+                        if (!empty($reply['at_reply'])) {
+                            $reply['at_reply']['content'] = self::cutSubstr(Roc::filter()->topicOut($reply['at_reply']['content']));
+                            $reply['at_reply']['post_time'] = parent::formatTime($reply['at_reply']['post_time']);
+                        }
                     }
+
+                    $reply['images'] = [
+                        'rows' => AttachmentModel::m()->getAttachments($relation),
+                        'count' => RelationModel::m()->getRelation($reply['pid'], 2, 'count')
+                    ];
+                    $reply['avatar'] = Roc::controller('frontend\User')->getAvatar($reply['uid']);
+                    $reply['add_time'] = $reply['post_time'];
+                    $reply['post_time'] = parent::formatTime($reply['post_time']);
                 }
 
-                $reply['images'] = [
-                    'rows' => Roc::model('attachment')->getAttachments($relation),
-                    'count' => Roc::model('relation')->getRelation($reply['pid'], 2, 'count')
-                ];
-
-                $reply['avatar'] = Roc::controller('frontend\User')->getAvatar($reply['uid']);
-
-                $reply['add_time'] = $reply['post_time'];
-
-                $reply['post_time'] = parent::formatTime($reply['post_time']);
-            }
-
             if (!empty($topic['praise']['rows']))
-
-            foreach ($topic['praise']['rows'] as &$praise)
-            {
-                $praise['avatar'] = Roc::controller('frontend\User')->getAvatar($praise['uid']);
-            }
+                foreach ($topic['praise']['rows'] as &$praise) {
+                    $praise['avatar'] = Roc::controller('frontend\User')->getAvatar($praise['uid']);
+                }
 
             parent::renderBase(['active' => 'read', 'pageTitle' => (!empty($topic) ? $topic['title'] : '')]);
-
             Roc::render('read', [
                 'data' => $topic,
-                'clubs' => Roc::model('club')->getList(),
+                'clubs' => ClubModel::m()->getList(),
             ]);
-        }
-        else
-        {
+        } else {
             Roc::redirect('/');
         }
     }
@@ -191,16 +197,13 @@ class IndexController extends BaseController
      */
     public static function newTopic()
     {
-        if (!Roc::model('User')->checkIsBanned(Roc::controller('frontend\User')->getloginInfo()['uid']))
-        {
-            parent::renderBase(['active' => 'newTopic']);
+        if (!UserModel::m()->checkIsBanned(Roc::controller('frontend\User')->getloginInfo()['uid'])) {
+            parent::renderBase(['active' => 'newTopic', 'pageTitle' => '发布新主题']);
 
             Roc::render('new_topic', [
-                'clubs' => Roc::model('club')->getList()
+                'clubs' => ClubModel::m()->getList()
             ]);
-        }
-        else
-        {
+        } else {
             Roc::redirect('/login');
         }
     }
@@ -209,26 +212,19 @@ class IndexController extends BaseController
     {
         $uid = Roc::controller('frontend\User')->getloginInfo()['uid'];
 
-        if (!Roc::model('User')->checkIsBanned($uid))
-        {
-            $topic = Roc::model('topic')->getByTid($tid);
+        if (!UserModel::m()->checkIsBanned($uid)) {
+            $topic = TopicModel::m()->getByTid($tid);
 
-            if (!empty($topic))
-            {
-                parent::renderBase(['active' => 'editTopic']);
-
+            if (!empty($topic)) {
+                parent::renderBase(['active' => 'editTopic', 'pageTitle' => '编辑主题']);
                 Roc::render('edit_topic', [
                     'topic' => $topic,
-                    'clubs' => Roc::model('club')->getList()
+                    'clubs' => ClubModel::m()->getList()
                 ]);
-            }
-            else
-            {
+            } else {
                 Roc::redirect('/');
             }
-        }
-        else
-        {
+        } else {
             Roc::redirect('/login');
         }
     }
@@ -243,18 +239,14 @@ class IndexController extends BaseController
     public static function changeSort($cid, $page, $sort)
     {
         $cid = parent::getNumVal($cid, 0, true);
-
         $page = parent::getNumVal($page, 1, true);
 
-        if (!in_array($sort, ['tid', 'last_time', 'essence']))
-        {
+        if (!in_array($sort, ['tid', 'last_time', 'essence'])) {
             $sort = 'tid';
         }
 
         setcookie('topic_sort', $sort, time() + 86400, '/', NULL, Roc::request()->secure, true);
-
         $data = self::getTopicList($cid, $page, $sort);
-
         echo json_encode(['status' => 'success', 'data' => $data]);
     }
 
@@ -278,12 +270,9 @@ class IndexController extends BaseController
     {
         $str_cut = strip_tags($str_cut);
 
-        if (mb_strlen(trim($str_cut), 'utf8') > $length)
-        {
+        if (mb_strlen(trim($str_cut), 'utf8') > $length) {
             return trim(mb_substr($str_cut, 0, $length, 'utf-8')) . '...';
-        }
-        else
-        {
+        } else {
             return trim($str_cut);
         }
     }
@@ -309,33 +298,24 @@ class IndexController extends BaseController
 
         $condition = $cid > 0 ? ['roc_topic.valid' => 1, 'roc_topic.cid' => $cid] : ['roc_topic.valid' => 1];
 
-        if ($sort == 'essence')
-        {
+        if ($sort == 'essence') {
             $condition = array_merge($condition, ['roc_topic.is_essence' => 1]);
-
             $sort = 'tid';
         }
 
-        $data['rows'] = Roc::model('topic')->getList(($page-1)*self::$per, self::$per, $condition, ['sortDESC', ['is_top', $sort]]);
+        $data['rows'] = TopicModel::m()->getList(($page-1)*self::$per, self::$per, $condition, ['sortDESC', ['is_top', $sort]]);
 
         if (!empty($data['rows']))
+            foreach ($data['rows'] as &$topic) {
+                $topic['title'] = Roc::filter()->topicOut($topic['title']);
+                $topic['imageCount'] = RelationModel::m()->getRelation($topic['tid'], 1, 'count');
+                $topic['avatar'] = Roc::controller('frontend\User')->getAvatar($topic['uid']);
+                $topic['post_time'] = parent::formatTime($topic['post_time']);
+                $topic['edit_time'] = parent::formatTime($topic['edit_time']);
+                $topic['last_time'] = parent::formatTime($topic['last_time']);
+            }
 
-        foreach ($data['rows'] as &$topic)
-        {
-            $topic['title'] = Roc::filter()->topicOut($topic['title']);
-
-            $topic['imageCount'] = Roc::model('relation')->getRelation($topic['tid'], 1, 'count');
-
-            $topic['avatar'] = Roc::controller('frontend\User')->getAvatar($topic['uid']);
-
-            $topic['post_time'] = parent::formatTime($topic['post_time']);
-
-            $topic['edit_time'] = parent::formatTime($topic['edit_time']);
-
-            $topic['last_time'] = parent::formatTime($topic['last_time']);
-        }
-
-        $data['total'] = Roc::model('topic')->getTotal($condition);
+        $data['total'] = TopicModel::m()->getTotal($condition);
 
         return $data;
     }
@@ -352,26 +332,26 @@ class IndexController extends BaseController
         // 返回数据格式
         $data = [
             'rows' => [],
-            'q' => Roc::filter()->topicInWeb($query->q),
+            'q' => $q,
             'page' => $page,
             'per' => self::$per,
             'total' => 0
         ];
 
-        $condition = ['roc_topic.valid' => 1, 'roc_topic.title %' => '%'.Roc::filter()->topicInWeb($query->q).'%'];
-        $data['rows'] = Roc::model('topic')->getList(($page-1)*self::$per, self::$per, $condition, ['sortDESC', ['tid']]);
+        $condition = ['roc_topic.valid' => 1, 'roc_topic.title %' => '%'.$q.'%'];
+        $data['rows'] = TopicModel::m()->getList(($page-1)*self::$per, self::$per, $condition, ['sortDESC', ['tid']]);
 
         if (!empty($data['rows']))
             foreach ($data['rows'] as &$topic) {
                 $topic['title'] = Roc::filter()->topicOut($topic['title']);
-                $topic['imageCount'] = Roc::model('relation')->getRelation($topic['tid'], 1, 'count');
+                $topic['imageCount'] = RelationModel::m()->getRelation($topic['tid'], 1, 'count');
                 $topic['avatar'] = Roc::controller('frontend\User')->getAvatar($topic['uid']);
                 $topic['post_time'] = parent::formatTime($topic['post_time']);
                 $topic['edit_time'] = parent::formatTime($topic['edit_time']);
                 $topic['last_time'] = parent::formatTime($topic['last_time']);
             }
 
-        $data['total'] = Roc::model('topic')->getTotal($condition);
+        $data['total'] = TopicModel::m()->getTotal($condition);
 
         return $data;
     }
@@ -383,8 +363,7 @@ class IndexController extends BaseController
      */
     private static function getSort($sort)
     {
-        switch ($sort)
-        {
+        switch ($sort) {
             case 'tid':
                 return 'tid';
 

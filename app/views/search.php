@@ -1,56 +1,45 @@
 {$headerLayout}
-    <div class="row wrapper border-bottom navy-bg page-heading">
-        <div class="col-lg-12">
-            <ol class="breadcrumb">
-            </ol>
-        </div>
-    </div>
-    <div class="wrapper wrapper-content">
-        <div class="ibox-content m-b-sm border-bottom">
-            <div class="p-xs text-danger">
-                <i class="fa fa-search"></i> {if !empty($error)}{$error}{else}{$data.q}{/if}
-            </div>
-        </div>
-
+<div class="content-wrapper">
+    <section class="content-header">
+        <ol class="breadcrumb">
+          <li><a href="/"><i class="fa fa-home"></i> 首页</a></li>
+          <li class="active">搜索 <i class="fa fa-search"></i> {if !empty($error)}{$error}{else}{$data.q}{/if}</li>
+        </ol>
+    </section>
+    <section class="content">
         <div class="row">
             <div class="col-md-12">
                 <div class="ibox float-e-margins">
                     <div id="topic-list" class="ibox-content" style="border-top: none;">
-                        <div class="feed-activity-list" v-lazyload="topics">
-
+                        <div class="feed-activity-list">
+                            {if empty($data['rows'])}
+                                <div class="no-data">暂无搜索结果</div>
+                            {/if}
                             {loop $data['rows'] $topic}
-                                <div class="feed-element">
-                                    <a href="/user/{$topic.uid}" class="pull-left">
-                                        <img class="topic-avatar" src="{$topic.avatar}">
+                                <div class="post">
+                                  <div class="user-block">
+                                    <a href="/user/{$topic.uid}">
+                                        <img class="img-circle img-bordered-sm topic-avatar" src="{$topic.avatar}" alt="{$topic.username}">
                                     </a>
-                                    <div class="media-body ">
-                                        <div class="topic-status pull-right">
-                                            <div class="c-ico">
-                                                <i class="fa fa-commenting"></i>
-                                            </div>
-                                            <div class="c-num">
-                                                {$topic.comment_num}
-                                            </div>
-                                        </div>
-                                        <strong>
-                                            <a href="/read/{$topic.tid}" class="topic-title">
-                                                {:str_replace($data['q'], '<span class="text-danger">'.$data['q'].'</span>', $topic['title'])}
-                                            </a>
-                                        </strong>
-                                        <p class="topic-info">
-                                            <small class="text-muted">
-                                                <i v-if="topic.imageCount > 0" class="fa fa-camera"></i>
-                                                <span class="topic-username">{$topic.username}</span>
-                                                {$topic.post_time}
-                                            </small>
-                                            {if $topic['location'] != ''}
-                                                <small class="text-muted" style="margin-left: 10px;">
-                                                    <i class="fa fa-map-marker"></i>
-                                                    {$topic.location}
-                                                </small>
-                                            {/if}
-                                        </p>
-                                    </div>
+                                    <span class="username">
+                                      <a href="/user/{$topic.uid}">{$topic.username}</a>
+                                      <a href="/read/{$topic.tid}" class="pull-right btn-box-tool"><i class="fa fa-comments-o margin-r-5"></i> 评论 ({$topic.comment_num})</a>
+                                    </span>
+                                    <span class="description">
+                                        {if $topic['location'] != ''}
+                                            <i class="fa fa-map-marker margin-r-5"></i> {$topic.location} -
+                                        {/if}
+                                        {$topic.post_time}
+                                    </span>
+                                  </div>
+                                  <a href="/read/{$topic.tid}" class="post-title">
+                                    <h5>
+                                        {if $topic['is_top'] > 0}
+                                            <span class="label label-success margin-r-5">置顶</span>
+                                        {/if}
+                                        {:str_ireplace($data['q'], '<span class="text-danger">'.$data['q'].'</span>', $topic['title'])}
+                                    </h5>
+                                  </a>
                                 </div>
                             {/loop}
 
@@ -60,14 +49,16 @@
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     {$footerLayout}
-
     <script type="text/javascript">
-        seajs.use("index", function(index) {
+        seajs.use("js/index", function(index) {
             index.search({$data.page}, {$data.per}, {$data.total}, '{$data.q}');
         });
     </script>
+  </div>
+</div>
+
 </body>
 </html>

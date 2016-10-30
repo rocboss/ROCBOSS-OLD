@@ -1,0 +1,61 @@
+@import url(common_white.css);
+.layui-layer-hui .layui-layer-content {color: #fff!important;}
+.layui-layer-prompt .layui-layer-input {width: 100%!important;}
+.content img {max-width: 100%;}
+.profile-info{margin:0}
+.profile-info .unread-msg{right:25px!important;top:3px!important}
+.header-avatar{width:26px;height:26px;display:inline-block}
+.nav .open>a,.nav .open>a:focus,.nav .open>a:hover{background:#F3F6F7}
+.dropdown-menu{background:#F3F6F7;border-color:#e0e0e0}
+.nav #requesting{color:#B18E6B;display:none}
+.user-login{margin-top:15px}
+.user-login a{padding:5px 15px!important;min-height:20px!important}
+.or{position:absolute;z-index:2;display:inline-block;margin:5px 0 0 -13px;width:22px;height:20px;-webkit-border-radius:100px;-moz-border-radius:100px;border-radius:100px;background:#fff;border:1px solid #e0e0e0;color:#999;text-align:center;font-weight:700;font-size:12px;font-family:Arial,'Times New Roman','Microsoft YaHei',SimHei;line-height:16px}
+.statistics{padding:20px 5px;font-size:12px}
+.statistics .col-md-4{text-align:center}
+.statistics-title{color:#ccc}
+.tag-list{padding:0 10px}
+.tag-list li{float:left;list-style:none}
+.tag-list li a{display:block;margin-top:5px;margin-right:5px;padding:5px 12px;border:1px solid #e0e0e0;border-radius:2px;background-color:#fff;color:inherit;font-size:10px}
+.timeline-body a>h5{font-size:14px}
+.timeline-body img{max-width:100%}
+.no-data{margin:50px 35px;text-align:center;color:#999}
+.fan .users-list-name{margin-top:15px}
+.well{background:#fff;border-color:#e0e0e0;color:#666}
+.topic-d-title{padding:10px}
+.topic-d-title h4{line-height:1.5em}
+.topic-d-content{border-top:1px solid #e0e0e0}
+.topic-d-content .info{color:#999}
+.topic-d-content pre{background:#F3F6F7;border:1px solid #eee}
+.topic-d-content a{background:0 0!important}
+pre .hljs{background:#F3F6F7!important;color:#333}
+.article-praise a.praise-user{width:30px; height: 30px; display:block;float:left;margin:10px}
+.article-praise a.praise-user .u-avatar {width: 100%;}
+.topic-praise a.praise-user{width:calc(25% - 20px);display:block;float:left;margin:10px}
+.topic-praise .u-avatar{width:100%;border:2px solid #fff}
+.topic-praise .no-data{padding:35px 0;margin:0}
+.timeline a.reply-user{position:absolute;top:0;left:18px;width:35px;height:35px;border-radius:50%;background:#d2d6de;color:#666;text-align:center;font-size:15px;line-height:30px;display:block}
+.timeline a.reply-user .u-avatar{width:35px;height:35px;border-radius:50%;border:2px solid #fff}
+.timeline-item.direct-chat-text{margin-left:70px!important}
+.timeline-item.direct-chat-text:after,.timeline-item.direct-chat-text:before{border-right-color:#F3F6F7}
+.load-at-reply{cursor:pointer}
+.topic-option{float:left;margin:0 15px 10px 15px;padding-top:10px;width:calc(100% - 30px)}
+.btn.disabled,.btn[disabled],fieldset[disabled] .btn{pointer-events:none;opacity:.45}
+.topic-option{border-bottom:1px solid #e0e0e0}
+.topic-option>div>a,.topic-option>div>div>button{font-weight:700;margin-bottom:10px}
+.reward-input{display:none;margin-top:10px;padding:10px 15px;background:0 0;width:260px}
+.wangEditor-menu-container{background:#F3F6F7;border-bottom:1px solid #e0e0e0}
+.wangEditor-menu-container .menu-item:hover{background:#ddd;border-radius:5px}
+.editor,.wangEditor-container{width:100%;min-height:200px;border:1px solid #e0e0e0;background:#fff}
+.more-input{display:block;width:100%;height:18px;background:#e0e0e0;text-align:center;color:#999}
+.saving-tip{width:150px; position: absolute;top: 32px; right: 0;background: #F3F6F7; padding: 3px 5px; border-radius: 1px;color:#fff;text-align:center;opacity:0;-webkit-transition-timing-function:ease-in-out;-webkit-transition-duration:1.1s;-webkit-transition-property:color,opacity}
+.saving-tip.active{color:#999;opacity:1}
+.reply-list .no-data{margin:15px; padding: 10px;}
+.login-form{width:100%;max-width:320px;margin:10px auto;padding:10px}
+.form-control{background:#F3F6F7;color:#333}
+dd,dt{margin-bottom:8px}
+.load-more-whisper{width:100px;margin:0 auto;text-align:center}
+.score-list{padding:10px}
+.tab-content img {max-width: 100%;}
+.turn-light {width: 60px; height: 60px; text-align: center; position: fixed; right: 10px; bottom: 10px; border-radius: 50%; border: 1px solid #B8C7CE;}
+.turn-light i {font-size: 40px; line-height: 60px;}

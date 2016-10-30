@@ -18,6 +18,20 @@ class FollowModel extends Model
         return $data;
     }
 
+    // 获取关注列表
+    public function getFollows($offset = 0, $limit = 12, $condition)
+    {
+        $data = $this->_db->from($this->_table)
+            ->leftJoin('roc_user', ['roc_follow.fuid' => 'roc_user.uid'])
+            ->where($condition)
+            ->offset($offset)
+            ->limit($limit)
+            ->select(['roc_follow.*', 'roc_user.username'])
+            ->many();
+
+        return $data;
+    }
+
     // 获取粉丝数量
     public function getFansCount($condition)
     {

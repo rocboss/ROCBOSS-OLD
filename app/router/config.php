@@ -1,8 +1,14 @@
 <?php
-
-// 路由映射表
+/**
+ * 路由映射表
+ */
 return [
-    ['GET /((@cid:[0-9]+/)@page:[0-9]+)', 'frontend\Index:index'],
+    // 切换明暗主题
+    ['POST /turn/light', 'frontend\Index:turnLight'],
+
+    ['GET /(topic)', 'frontend\Index:index'],
+
+    ['GET /(@cid:[0-9]+/)@page:[0-9]+', 'frontend\Index:index'],
 
     ['GET /search', 'frontend\Index:search'],
 
@@ -14,11 +20,19 @@ return [
 
     ['GET /edit/topic/@tid:[0-9]+', 'frontend\Index:editTopic'],
 
+    ['GET /newArticle', 'frontend\Article:newArticle'],
+
+    ['GET /article(/@page:[0-9]+)', 'frontend\Article:index'],
+
+    ['GET /read/article-@id:[0-9]+', 'frontend\Article:read'],
+
     ['GET /user(/@uid:[0-9]+)', 'frontend\User:index'],
 
     ['GET /notice', 'frontend\User:notice'],
 
-    ['GET /profile', 'frontend\User:profile'],
+    ['GET /notice/change-type/@type', 'frontend\User:changeNoticeType'],
+
+    ['GET /setting', 'frontend\User:setting'],
 
     ['GET /scores', 'frontend\User:scores'],
 
@@ -26,15 +40,27 @@ return [
 
     ['GET /recharge/return', 'frontend\User:alipayReturn'],
 
+    ['GET /user/@uid:[0-9]+/change-tab/@type', 'frontend\User:changeTabType'],
+
     ['GET /user/topic/@uid:[0-9]+/@page:[0-9]+', 'frontend\User:getMoreTopic'],
 
     ['GET /user/reply/@uid:[0-9]+/@page:[0-9]+', 'frontend\User:getMoreReply'],
+
+    ['GET /user/article/@uid:[0-9]+/@page:[0-9]+', 'frontend\User:getMoreArticle'],
 
     ['GET /user/collection/@uid:[0-9]+/@page:[0-9]+', 'frontend\User:getMoreCollection'],
 
     ['GET /user/fans/@uid:[0-9]+/@page:[0-9]+', 'frontend\User:getMoreFans'],
 
-    ['GET /get/whisper/@type:0|1/@page:[0-9]+', 'frontend\User:getMoreWhisper'],
+    ['GET /user/follows/@uid:[0-9]+/@page:[0-9]+', 'frontend\User:getMoreFollows'],
+
+    ['GET /get/notice/@page:[0-9]+', 'frontend\User:getMoreNotice'],
+
+    ['GET /get/whisper/@page:[0-9]+', 'frontend\User:getMoreWhisper'],
+
+    ['GET /user/whisper/@uid:[0-9]+/@page:[0-9]+', 'frontend\User:getMoreWhisperDialog'],
+
+    ['GET /chat-with-@uid:[0-9]+', 'frontend\User:chatWithUser'],
 
     ['GET /logout', 'frontend\User:logout'],
 
@@ -44,11 +70,17 @@ return [
 
     ['POST /add/topic', 'frontend\Post:addTopic'],
 
+    ['POST /add/article', 'frontend\Post:addArticle'],
+
     ['POST /add/reply/@tid:[0-9]+', 'frontend\Post:addReply'],
 
     ['POST /do/praise/@tid:[0-9]+', 'frontend\Post:doPraise'],
 
+    ['POST /do/article-praise/@aid:[0-9]+', 'frontend\Post:doArticlePraise'],
+
     ['POST /do/collection/@tid:[0-9]+', 'frontend\Post:doCollection'],
+
+    ['POST /do/article-collection/@aid:[0-9]+', 'frontend\Post:doArticleCollection'],
 
     ['POST /do/read/@type', 'frontend\Post:doRead'],
 
@@ -59,6 +91,10 @@ return [
     ['POST /upgrade/vip/@type:[0-9]+', 'frontend\User:doUpgrade'],
 
     ['POST /deliver/whisper', 'frontend\User:deliverWhisper'],
+
+    ['POST /do/withdraw', 'frontend\Post:withdraw'],
+
+    ['POST /do/transfer', 'frontend\Post:transfer'],
 
     ['POST /save/profile', 'frontend\User:saveProfile'],
 
@@ -89,11 +125,17 @@ return [
     // 系统设置
     ['GET /admin/system', 'backend\Admin:system'],
 
+    // 管理文章
+    ['GET /admin/articles(/@page:[0-9]+)', 'backend\Article:articles'],
+
     // 管理帖子
     ['GET /admin/topics(/@page:[0-9]+)', 'backend\Admin:topics'],
 
     // 管理主题
     ['GET /admin/replys(/@page:[0-9]+)', 'backend\Admin:replys'],
+
+    // 提现申请
+    ['GET /admin/withdraw(/@page:[0-9]+)', 'backend\Admin:withdraw'],
 
     // 管理用户
     ['GET /admin/users(/@page:[0-9]+)', 'backend\Admin:users'],
@@ -103,4 +145,16 @@ return [
 
     // 用户积分详情
     ['GET /admin/user-score-records/@uid:[0-9]+', 'backend\User:getUserScoreRecords'],
+
+    // 预览文章
+    ['GET /admin/preview/article(/@id:[0-9]+)', 'backend\Article:preview'],
+
+    // 审核文章
+    ['POST /admin/review/article', 'backend\Article:doReview'],
+
+    // 提现审核
+    ['POST /admin/review/withdraw', 'backend\Admin:doWithdraw'],
+
+    // 删除文章
+    ['POST /delete/article/@id:[0-9]+', 'backend\Article:delete'],
 ];

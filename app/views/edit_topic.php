@@ -1,50 +1,48 @@
 {$headerLayout}
-<style type="text/css">
-    .col-lg-12 {
-        position: inherit;
-    }
-</style>
-    <div class="row wrapper border-bottom navy-bg page-heading">
-        <div class="col-lg-12">
-            <ol class="breadcrumb">
-                <li>
-                    <a href="/">主页</a>
-                </li>
-                <li>
-                    编辑主题
-                </li>
-            </ol>
-        </div>
-    </div>
+<div class="content-wrapper">
+  <section class="content-header">
+    <ol class="breadcrumb">
+      <li><a href="/"><i class="fa fa-home"></i> 首页</a></li>
+      <li><a href="/topic">社区</a></li>
+      <li class="active">编辑主题主题</li>
+    </ol>
+  </section>
+
+  <section class="content">
     <div class="row">
-        <div class="col-lg-12">
-            <div class="wrapper wrapper-content">
-                <div class="ibox">
-                    <div class="ibox-content">
-                        <div class="row" style="margin: 20px 0px;">
-                            {loop $clubs $club}
-                                <span class="chooseClub btn btn-sm btn-default" style="margin-bottom: 5px;" data-cid="{$club.cid}">{$club.club_name}</span>
-                            {/loop}
-                            <div class="space-15"></div>
-                            <input type="hidden" id="tid" value="{$topic.tid}">
-                            <input type="text" id="title" placeholder="请输入标题" value="{$topic.title}" class="form-control">
-                        </div>
-                        <div class="row">
+        <div class="col-lg-12 col-md-12">
+            <div class="nav-tabs-custom">
+                <div class="nav" style="padding: 20px 10px 0;">
+                    <div class="form-group">
+                        {loop $clubs $club}
+                            <span class="chooseClub btn btn-sm {if $topic['cid'] == $club['cid']}bg-olive{else}bg-gray{/if}" style="margin-bottom: 5px;" data-cid="{$club.cid}">{$club.club_name}</span>
+                        {/loop}
+                        <input type="hidden" id="tid" value="{$topic.tid}">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="title" placeholder="请输入标题" value="{$topic.title}" class="form-control">
+                    </div>
+                    <div class="tab-content">
+                        <div class="form-group">
                             <textarea id="editor" class="editor" rows="20"></textarea>
                             <a class="more-input">
                                 <i class="fa fa-angle-double-down"></i>
                             </a>
-                            <a id="post-btn" href="javascript:;" class="btn btn-sm btn-primary submit-btn" style="margin: 15px"><i class="fa fa-check "></i> 提交 </a>
+                        </div>
+                        <div class="form-group">
+                            <button type="button" id="post-btn" href="javascript:;" class="btn bg-olive btn-block submit-btn"><i class="fa fa-paper-plane"></i> 提交</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+  </section>
     {$footerLayout}
     <script type="text/javascript">
-        seajs.use("topic", function(topic) {
+        seajs.use("js/topic", function(topic) {
             topic.edit({
+                cid: {$topic.cid},
                 txt: '{:str_replace("\n", "", $topic['content'])}'
             });
         });

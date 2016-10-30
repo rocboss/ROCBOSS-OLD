@@ -17,9 +17,12 @@
             <div class="tab-content">
                 <div class="check-div form-inline">
                     <div class="col-lg-4 col-xs-5">
-						<input type="text" class="form-control input-sm" id="search-uid" value="{:Roc::request()->query->uid}" placeholder="输入用户UID搜索">
-						<button class="btn btn-white btn-sm do-search">搜 索</button>
-					</div>
+                        <form action="/admin/users">
+                            <input type="text" name="username" class="form-control input-sm" id="search-username" value="{:Roc::request()->query->username}" placeholder="用户名" style="width: 100px!important;"> OR
+                            <input type="text" name="uid" class="form-control input-sm" id="search-uid" value="{:Roc::request()->query->uid}" placeholder="用户UID" style="width: 80px!important;">
+                            <button class="btn btn-white btn-sm do-search"><i class="fa fa-search margin-r-5"></i> 搜 索</button>
+                        </form>
+                    </div>
                     <span class="pull-right" style="margin-right: 15px;">共有 {$count} 用户</span>
                 </div>
                 <div class="data-div">
@@ -159,14 +162,21 @@
             var page = {$page},
             per = {$per},
             pages = Math.ceil({$count} / per),
-            href = '/admin/users/';
+            href = '/admin/users/(?)';
+            {if !empty(Roc::request()->query->username)}
+                href += '?username={:Roc::filter()->topicInWeb(Roc::request()->query->username)}';
+            {else}
+                {if !empty(Roc::request()->query->uid)}
+                    href += '?uid={:intval(Roc::request()->query->uid)}';
+                {/if}
+            {/if}
             laypage.dir = '/app/views/css/laypage.css';
             laypage({
                 dir: '/app/views/css/laypage.css',
                 cont: 'pagination',
                 pages: pages,
                 curr: page,
-                href: href + '(?)',
+                href: href,
                 first: 1,
                 last: pages,
                 skin: 'molv',
@@ -175,7 +185,7 @@
                 groups: 15,
                 jump: function(e, first) {
                     if (!first) {
-                        window.location.href = href + e.curr;
+                        window.location.href = href.replace('(?)', e.curr);
                     }
                 }
             });
@@ -218,7 +228,7 @@
                             modal.modal('toggle');
                             window.location.reload();
                         } else {
-                            layer.msg(data.msg);
+                            layer.msg(data.data);
                         }
                     }, 'json');
                 });

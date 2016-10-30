@@ -21,14 +21,23 @@ class NotificationModel extends Model
     // 获取阅读提醒
     public function getRead($at_uid, $offset = 0, $limit = 12)
     {
-        return $this->_db->from($this->_table)
+        $orm = $this->_db->from($this->_table)
                 ->leftJoin('roc_user', ['roc_notification.uid' => 'roc_user.uid'])
-                ->where(['roc_notification.at_uid' => $at_uid, 'roc_notification.is_read' => 1, 'roc_notification.valid' => 1])
-                ->offset($offset)
+                ->where(['roc_notification.at_uid' => $at_uid, 'roc_notification.is_read' => 1, 'roc_notification.valid' => 1]);
+
+        $rows = $orm->offset($offset)
                 ->limit($limit)
                 ->sortDESC('roc_notification.id')
                 ->select(['roc_notification.*', 'roc_user.username'])
                 ->many();
+        $total = $orm->count();
+
+        return [
+            'rows' => $rows,
+            'offset' => $offset,
+            'limit' => $limit,
+            'total' => $total
+        ];
     }
 
     // 获取未读提醒

@@ -1,143 +1,118 @@
 {$headerLayout}
-    <div class="row wrapper border-bottom navy-bg page-heading">
-        <div class="col-lg-12">
-            <ol class="breadcrumb">
-                <li>
-                    <a href="/">主页</a>
-                </li>
-                <li>
-                    <strong>我的提醒</strong>
-                </li>
-            </ol>
-        </div>
-    </div>
-    <div id="notice-list" class="wrapper wrapper-content" style="display: none;">
-        <div class="col-lg-12">
-            <div class="ibox float-e-margins">
-                <div class="panel blank-panel">
-                    <div class="panel-heading ibox-title">
-                        <div class="panel-options">
-                            <ul class="nav nav-tabs profile-type">
-                                <li class="active">
-                                    <a data-toggle="tab" href="#tab-unread" aria-expanded="true">
-                                        未读
+<div class="content-wrapper">
+  <section class="content-header">
+    <ol class="breadcrumb">
+      <li><a href="/"><i class="fa fa-home"></i> 首页</a></li>
+      <li class="active">消息提醒</li>
+    </ol>
+  </section>
+
+  <section class="content">
+    <div class="row">
+        <div class="wrapper wrapper-content">
+            <div class="col-lg-12 col-md-12">
+                <div class="nav-tabs-custom">
+                  <ul class="nav nav-tabs">
+                    <li v-bind:class="{'active': nowTab == 'unread'}"><a href="#unread" v-on:click="changeTab($event, 'unread')">所有未读</a></li>
+                    <li v-bind:class="{'active': nowTab == 'notice'}"><a href="#notice" v-on:click="changeTab($event, 'notice')">已读通知</a></li>
+                    <li v-bind:class="{'active': nowTab == 'whisper'}"><a href="#whisper" v-on:click="changeTab($event, 'whisper')">私信总览</a></li>
+                  </ul>
+                  <div class="tab-content">
+                      <!-- 所有未读 -->
+                      <div class="tab-pane" id="unread" v-bind:class="{'active': nowTab == 'unread'}" v-tooltip="unread">
+                          <div class="no-data" v-if="unread.length == 0">
+                                暂无数据
+                          </div>
+
+                          <template v-for="u in unread">
+                              <dl id="{{u.type}}-{{u.id}}" class="dl-horizontal">
+                                <dt>
+                                    <a v-on:click="doRead(u.type, u.id)" class="do-read btn btn-xs bg-olive" title="标记为已读" data-toggle="tooltip" data-placement="top"><i class="fa fa-thumb-tack"></i></a>
+                                    <a v-on:click="doRead(u.type, u.id, u.tid, u.pid, u.uid)" class="do-read btn btn-xs btn-primary" title="查看" data-toggle="tooltip" data-placement="top"><i class="fa fa-mail-forward"></i></a>
+                                </dt>
+                                <dd>
+                                    <span class="margin-r-10"></span>
+                                    <span class="text-olive margin-r-5" v-if="u.type == 'notice'"><i class="fa fa-comments"></i></span>
+                                    <span class="text-warning margin-r-5" v-if="u.type == 'whisper'"><i class="fa fa-envelope"></i></span>
+                                    <span class="text-muted margin-r-5">{{u.time}}</span>
+                                    <span>{{{u.title}}}</span>
+                                </dd>
+                              </dl>
+                          </template>
+                      </div>
+                      <!-- 所有已读提醒 -->
+                      <div class="tab-pane" id="notice" v-bind:class="{'active': nowTab == 'notice'}" v-tooltip="notice">
+                          <div class="no-data" v-if="notice.length == 0">
+                                暂无数据
+                          </div>
+                          <template v-for="n in notice">
+                              <dl id="notice-{{n.id}}" class="dl-horizontal">
+                                <dt>
+                                    <a href="/read/{{n.tid}}#reply-{{n.pid}}" target="_blank" class="do-read btn btn-xs btn-primary" title="查看" data-toggle="tooltip" data-placement="top"><i class="fa fa-mail-forward"></i></a>
+                                </dt>
+                                <dd>
+                                    <span class="margin-r-10"></span>
+                                    <span class="text-olive margin-r-5"><i class="fa fa-comments"></i></span>
+                                    <span class="text-muted margin-r-5">{{n.time}}</span>
+                                    <span>{{{n.title}}}</span>
+                                </dd>
+                              </dl>
+                          </template>
+                          <div class="timeline-item" v-if="notice.length > 0">
+                            <button type="button" v-on:click="loadMoreNotice($event)" class="btn bg-gray btn-block">
+                                <i class="fa fa-angle-double-down margin-r-5"></i> 加载更多提醒
+                            </button>
+                          </div>
+                      </div>
+                      <!-- 私信列表 -->
+                      <div class="tab-pane" id="whisper" v-bind:class="{'active': nowTab == 'whisper'}" v-tooltip="whisper">
+                          <div class="no-data" v-if="whisper.length == 0">
+                                暂无数据
+                          </div>
+                          <ul class="msgs-list" v-if="whisper.length > 0">
+                              <template v-for="w in whisper">
+                                <li class="item">
+                                  <div class="msg-status">
+                                      <span class="label label-primary pull-right" v-if="w.at_uid != {$loginInfo.uid}">
+                                        <i class="fa fa-arrow-up"></i>
+                                        <span class="label" v-if="w.is_read == 0">对方未读</span>
+                                        <span class="label" v-if="w.is_read == 1">对方已读</span>
+                                      </span>
+                                      <span class="label label-success pull-right" v-if="w.at_uid == {$loginInfo.uid}">
+                                        <i class="fa fa-arrow-down"></i>
+                                        <span class="label" v-if="w.is_read == 0">我未读</span>
+                                        <span class="label" v-if="w.is_read == 1">我已读</span>
+                                      </span>
+                                  </div>
+                                  <div class="msg-info">
+                                    <a href="/chat-with-{{ w.at_uid != {$loginInfo.uid} ? w.at_uid : w.uid }}" class="msg-title" target="_blank">
+                                        {{ w.title }}
+                                        <span class="pull-right">{{w.time}}</span>
                                     </a>
+                                        <span class="msg-description">
+                                          {{ w.content }}
+                                        </span>
+                                  </div>
                                 </li>
-                                <li>
-                                    <a data-toggle="tab" href="#tab-notification" aria-expanded="false">
-                                        通知
-                                    </a>
-                                </li>
-                                <li>
-                                    <a data-toggle="tab" href="#tab-whisper" aria-expanded="false">
-                                        私信
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="panel-body ibox-content ibox float-e-margins">
-
-                        <div class="tab-content">
-                            <div id="tab-unread" class="tab-pane active">
-                                {if empty($unread['unread_notification'])}
-                                <div style="margin: 50px; text-align: center; color: #ccc;">
-                                    暂无数据
-                                </div>
-                                {/if}
-
-                                <div class="feed-activity-list" v-for="notice in unread_notification">
-                                    <div id="notification-{{notice.id}}" class="feed-element">
-                                        <div class="media-body ">
-                                            {{ notice.title }}
-                                            <br>
-                                            <small class="text-muted"><i class="fa fa-bell-o"></i> {{ notice.time }}</small>
-                                            <div class="pull-right">
-                                                <a class="do-read btn btn-xs btn-white" data-id="{{notice.id}}" data-type="notification"><i class="fa fa-thumb-tack"></i></a>
-                                                <a href="/read/{{notice.tid}}#reply-{{notice.pid}}" data-id="{{notice.id}}" data-type="notification" class="do-read btn btn-xs btn-white"><i class="fa fa-mail-forward"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="feed-activity-list" v-for="whisper in unread_whisper">
-                                    <div id="whisper-{{whisper.id}}" class="feed-element">
-                                        <div class="media-body ">
-                                            {{ whisper.title }}
-                                            <br>
-                                            <small class="text-muted"><i class="fa fa-envelope-o"></i> {{ whisper.time }}</small>
-                                            <div class="pull-right">
-                                                <a class="do-read btn btn-xs btn-primary" data-id="{{whisper.id}}" data-type="whisper"><i class="fa fa-thumb-tack"></i></a>
-                                                <a href="/user/{{whisper.uid}}" class="do-read btn btn-xs btn-primary" data-id="{{whisper.id}}" data-type="whisper"><i class="fa fa-envelope-o"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="tab-notification" class="tab-pane">
-                                {if empty($notification)}
-                                <div style="margin: 50px; text-align: center; color: #ccc;">
-                                    暂无数据
-                                </div>
-                                {/if}
-
-                                <div class="feed-activity-list" v-for="notice in notification">
-                                    <div id="notification-{{notice.id}}" class="feed-element">
-                                        <div class="media-body ">
-                                            {{ notice.title }}
-                                            <br>
-                                            <small class="text-muted"><i class="fa fa-bell-o"></i> {{ notice.time }}</small>
-                                            <div class="pull-right">
-                                                <a href="/read/{{notice.tid}}#reply-{{notice.pid}}" data-id="{{notice.id}}" data-type="notification" class="btn btn-xs btn-white"><i class="fa fa-mail-forward"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <a class="load-more-reply btn btn-primary btn-block" v-show="{:!empty($replys)}"><i class="fa fa-arrow-down"></i> 显示更多</a>
-                            </div>
-
-                            <div id="tab-whisper" class="tab-pane">
-                                <div class="btn-group">
-                                    <a class="switch-whisper btn btn-white" data-type="0" v-bind:class="{'active': isForMe}">发给我的</a>
-                                    <a class="switch-whisper btn btn-white" data-type="1" v-bind:class="{'active': !isForMe}">我发送的</a>
-                                </div>
-                                {if empty($whisper)}
-                                <div style="margin: 50px; text-align: center; color: #ccc;">
-                                    暂无数据
-                                </div>
-                                {/if}
-
-                                <div class="feed-activity-list" v-for="w in whisper">
-                                    <div id="whisper-{{w.id}}" class="feed-element">
-                                        <div class="media-body ">
-                                            <p style="color: #999; border-bottom: 1px dashed #ccc;"><span class="text-warning" v-show="w.is_read != undefined && w.is_read != ''">[{{w.is_read}}]</span> {{ w.title }}</p>
-                                            <p>{{ w.content }}</p>
-                                            <small class="text-muted"><i class="fa fa-envelope-o"></i> {{ w.time }}</small>
-                                            <div class="pull-right">
-                                                <a href="/user/{{w.uid}}" class="btn btn-xs btn-primary" data-id="{{w.id}}" data-type="whisper"><i class="fa fa-envelope-o"></i></a>
-                                                <a class="delete-whisper btn btn-xs btn-white" data-id="{{w.id}}"><i class="fa fa-trash"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                              </template>
+                              <div class="timeline-item" v-if="whisper.length > 0">
+                                <button type="button" v-on:click="loadMoreWhisper($event)" class="btn bg-gray btn-block">
+                                    <i class="fa fa-angle-double-down margin-r-5"></i> 加载更多私信
+                                </button>
+                              </div>
+                          </ul>
+                      </div>
+                  </div>
                 </div>
             </div>
         </div>
     </div>
+  </section>
     {$footerLayout}
     <script type="text/javascript">
-        seajs.use("notice", function(notice) {
+        seajs.use("js/notice", function(notice) {
             notice.init({
-                unread_notification: {:json_encode($unread['unread_notification'])},
-                unread_whisper: {:json_encode($unread['unread_whisper'])},
-                notification: {:json_encode($notification)},
-                whisper: {:json_encode($whisper)},
+                unread: {:json_encode($unread)}
             });
         });
     </script>

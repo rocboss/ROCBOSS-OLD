@@ -40,8 +40,8 @@ class BaseController extends Controller
     protected static function renderBase(array $params)
     {
         Roc::render('admin/_header', [
-            'pageTitle' => isset($params['pageTitle']) ? $params['pageTitle'] : '', 
-            'active' => $params['active'], 
+            'pageTitle' => isset($params['pageTitle']) ? $params['pageTitle'] : '',
+            'active' => $params['active'],
             'seo'=>[
                     'sitename' => Roc::get('sys.config')['sitename'],
                     'keywords' => Roc::get('sys.config')['keywords'],
@@ -87,34 +87,26 @@ class BaseController extends Controller
      * @param  [type] $unixTime [description]
      * @return [type]           [description]
      */
-    public static function formatTime($unixTime)
+    protected static function formatTime($unixTime)
     {
         $showTime = date('Y', $unixTime) . "年" . date('n', $unixTime) . "月" . date('j', $unixTime) . "日";
-        
-        if (date('Y', $unixTime) == date('Y'))
-        {
+
+        if (date('Y', $unixTime) == date('Y')) {
             $showTime = date('n', $unixTime) . "月" . date('j', $unixTime) . "日 " . date('H:i', $unixTime);
-            
-            if (date('n.j', $unixTime) == date('n.j'))
-            {
+            if (date('n.j', $unixTime) == date('n.j')) {
                 $timeDifference = time() - $unixTime + 1;
-                
-                if ($timeDifference < 30)
-                {
+                if ($timeDifference < 30) {
                     return "刚刚";
                 }
-                if ($timeDifference >= 30 && $timeDifference < 60)
-                {
+                if ($timeDifference >= 30 && $timeDifference < 60) {
                     return $timeDifference . "秒前";
                 }
-                if ($timeDifference >= 60 && $timeDifference < 3600)
-                {
+                if ($timeDifference >= 60 && $timeDifference < 3600) {
                     return floor($timeDifference / 60) . "分钟前";
                 }
                 return date('H:i', $unixTime);
             }
-            if (date('n.j', ($unixTime + 86400)) == date('n.j'))
-            {
+            if (date('n.j', ($unixTime + 86400)) == date('n.j')) {
                 return "昨天 " . date('H:i', $unixTime);
             }
         }
@@ -128,7 +120,7 @@ class BaseController extends Controller
      * @param  string $default [description]
      * @return [type]          [description]
      */
-    public static function getVal($value, $default = '')
+    protected static function getVal($value, $default = '')
     {
         return isset($value) ? $value : $default;
     }
@@ -140,14 +132,46 @@ class BaseController extends Controller
      * @param  boolean $force   [description]
      * @return [type]           [description]
      */
-    public static function getNumVal($value, $default = 0, $force = false)
+    protected static function getNumVal($value, $default = 0, $force = false)
     {
-        if ($force)
-        {
+        if ($force) {
             return is_numeric($value) && intval($value) > 0 ? intval($value) : $default;
         }
 
         return is_numeric($value) ? intval($value) : $default;
     }
-}
 
+    /**
+     * 检测管理员权限
+     * @param  boolean $force [description]
+     * @return [type]         [description]
+     */
+    protected static function __checkManagePrivate($force = false)
+    {
+        if (Roc::controller('frontend\User')->getloginInfo()['groupid'] != 99) {
+            if ($force) {
+                Roc::redirect('/login');
+            }
+
+            parent::json('error', '抱歉，权限不足！');
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * CSRF攻击拦截
+     * @method csrfCheck
+     * @return [type]    [description]
+     */
+    public static function csrfCheck()
+    {
+        $data = Roc::request()->data;
+
+        if (!empty($data['_csrf']) && $data['_csrf'] == md5(Roc::request()->cookies->roc_secure)) {
+            return true;
+        } else {
+            self::renderJson(10006);
+        }
+    }
+}

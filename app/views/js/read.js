@@ -1,13 +1,14 @@
 define(function(require, exports, module) {
-    var $ = require("jquery");
-    var bootstrap = require("bootstrap");
-    // var vue = require("vue");
-    var laypage = require("laypage");
-    var layer = require("layer");
-    var _csrf;
+    var $ = require("jquery"),
+        bootstrap = require("bootstrap"),
+        laypage = require("laypage"),
+        layer = require("layer"),
+        common = require("js/common"),
+        _csrf;
     layer.config({
-        path: '/app/views/js/vendor/layer/'
+        path: '/app/views/vendor/layer/'
     });
+    common.ready();
     // 主题详情
     exports.init = function(config) {
         $(document).ready(function() {
@@ -21,16 +22,7 @@ define(function(require, exports, module) {
             }
             _csrf = $('meta[name=_csrf]').attr('content');
             $(".load-at-reply").on('click', function(event) {
-                loadAtReply($(this).data('at_pid'), $(this).data('tid'));
-            });
-            $(".load-at-reply").hover(function(event) {
-                if (event.type == 'mouseenter') {
-                    layer.tips('点击加载全部', this, {
-                        tips: [4, '#4B9DBD']
-                    });
-                } else {
-                    layer.closeAll();
-                }
+                OPTIONS.loadAtReply($(this).data('at_pid'), $(this).data('tid'));
             });
             $(".change-club").on('click', function(event) {
                 $.post('/change/club/' + tid, {
@@ -107,7 +99,8 @@ define(function(require, exports, module) {
                 }, function(data) {
                     if (data.status == 'success') {
                         $(".p-tips").show();
-                        $(".topic-praise .clear").before('<a href="/user" class="praise-user"><img alt="image" class="img-circle" src="'+$("#my-avatar").attr('src')+'"></a>');
+                        $(".topic-praise .no-data").hide();
+                        $(".topic-praise .clear").before('<a href="/user" class="praise-user"><img alt="image" class="img-circle u-avatar" src="'+$("#my-avatar").attr('src')+'"></a>');
                         $(that).html('<i class="fa fa-thumbs-up "></i> 已点赞');
                     } else {
                         $(that).removeAttr('disabled');
@@ -150,7 +143,8 @@ define(function(require, exports, module) {
                         $(".reward-score").val('');
                         $(".reward-input").toggle('fast');
                         $(".topic-reward").show();
-                        $(".topic-reward").append('<p><a href="/user">我</a> &nbsp; <small>刚刚</small> &nbsp; 打赏了 <strong>'+score+'</strong> 积分</p>')
+                        $(".topic-reward .no-data").hide();
+                        $(".topic-reward").append('<p><a href="/user" class="margin-r-15">我</a><small class="margin-r-15">刚刚</small> 打赏了 <strong class="text-danger">'+score+'</strong> 积分</p>')
                     } else {
                         layer.msg(data.data, {icon: 2});
                     }
@@ -170,8 +164,10 @@ define(function(require, exports, module) {
             });
             $(".do-reply").on('click', function(event) {
                 if ($(this).data('pid') == 0) {
-                    $(".reply-list").after($("#reply-input"));
+                    $(".reply-list").show();
+                    $(".reply-list").html($("#reply-input"));
                 } else {
+                    $(".reply-list").hide();
                     $(".reply-input-blank").remove();
                     $(this).parent('.pull-right').after($("#reply-input"));
                     $(this).parent('.pull-right').after('<div class="clearfix reply-input-blank"></div>');
@@ -206,7 +202,7 @@ define(function(require, exports, module) {
                 $(".wangEditor-txt").attr('style', 'height: '+($(".wangEditor-txt").height() + 150)+'px');
             });
             $("#post-btn").on('click', function(event) {
-                postReply($(this).data('at_pid'), $(this).data('tid'));
+                OPTIONS.postReply($(this).data('at_pid'), $(this).data('tid'));
             });
             key = 'topic-' + tid + '-reply';
             if (localStorage.getItem(key) != null || localStorage.getItem(key) != '') {
@@ -231,15 +227,15 @@ define(function(require, exports, module) {
              // 上传图片
             editor.config.uploadImgUrl = '/uploads';
             editor.create();
-            $('.wangEditor-menu-container').append('<div id="saving-tip" class="saving-tip pull-right">' + '<i class="fa fa-spinner fa-spin"></i> 本地草稿自动保存中...' + '</div>' + '<div class="clearfix"></div>');
+            $('.wangEditor-menu-container').append('<div id="saving-tip" class="saving-tip pull-right hidden-xs">' + '<i class="fa fa-spinner fa-spin"></i> 自动保存草稿中...' + '</div>' + '<div class="clearfix"></div>');
             // 每10秒自动保存草稿
             var s = setInterval(function() {
                 if ($('.editor').val() != '') {
                     localStorage.setItem(key, $('#editor').val());
-                    $('#saving-tip').attr('class', 'saving-tip active pull-right');
+                    $('#saving-tip').attr('class', 'saving-tip active pull-right hidden-xs');
 
                     setTimeout(function() {
-                        $('#saving-tip').attr('class', 'saving-tip pull-right');
+                        $('#saving-tip').attr('class', 'saving-tip pull-right hidden-xs');
                     }, 3000);
                 }
             }, 10000);
@@ -250,47 +246,49 @@ define(function(require, exports, module) {
                 });
             });
         });
-        function loadAtReply(pid, tid) {
-            $('.at-reply-' + pid).html('<p><i class="fa fa-spinner fa-spin"></i> 完整引用回复加载中 ...</p>');
-            setTimeout(function() {
-                var tpl = '<div class="content">' + $('#reply-' + pid + ' .content').html() + '</div>';
+        var OPTIONS = {
+            loadAtReply: function(pid, tid) {
+                $('.at-reply-'+pid).html('<p><i class="fa fa-spinner fa-spin"></i> 完整引用加载中 ...</p>');
+                setTimeout(function() {
+                    var tpl = $('#reply-' + pid + ' .reply-content').html();
 
-                if ($('#reply-' + pid + ' .image-list').html() != undefined) {
-                    tpl += '<div class="image-list">' + $('#reply-' + pid + ' .image-list').html() + '</div>';
+                    if ($('#reply-' + pid + ' .image-list').html() != undefined) {
+                        tpl += '<div class="image-list">' + $('#reply-' + pid + ' .image-list').html() + '</div>';
+                    }
+                    $('.at-reply-' + pid).html(tpl);
+                    $('.at-reply-' + pid).parent('.well').attr('class', 'well at-reply-detail');
+                }, 400);
+            },
+            postReply: function(atPid, tid) {
+                var content = $('.editor').val();
+                if (OPTIONS.removeHTMLTag(content).length < 3) {
+                    layer.msg('内容应不少于三个字符', {icon: 2});
+                    return;
                 }
-                $('.at-reply-' + pid).html(tpl);
-                $('.at-reply-' + pid).parent('.well').attr('class', 'well topic-detail at-reply-detail');
-            }, 400);
-        }
-        function postReply(atPid, tid) {
-            var content = $('.editor').val();
-            if (removeHTMLTag(content).length < 3) {
-                layer.msg('内容应不少于三个字符', {icon: 2});
-                return;
+                $('#post-btn').attr('disabled', 'disabled');
+                $('#post-btn').html('<i class="fa fa-spinner fa-spin"></i> 发布中 ...');
+
+                $.post('/add/reply/' + tid, {
+                    content: content,
+                    at_pid: atPid,
+                    _csrf: _csrf
+                }, function(data) {
+                    if (data.status == 'success') {
+                        localStorage.removeItem(key);
+                        location.reload();
+                    } else {
+                        layer.msg(data.data, {icon: 2});
+                        $('#post-btn').removeAttr('disabled');
+                        $('#post-btn').html('<i class="fa fa-check "></i> 提交');
+                    }
+                }, 'json');
+            },
+            removeHTMLTag: function(str) {
+                str = str.replace(/<\/?[^>]*>/g,''); //去除HTML tag
+                str = str.replace(/[ | ]*\n/g,'\n'); //去除行尾空白
+                str=str.replace(/&nbsp;/ig,'');//去掉&nbsp;
+                return str;
             }
-            $('#post-btn').attr('disabled', 'disabled');
-            $('#post-btn').html('<i class="fa fa-spinner fa-spin"></i> 发布中 ...');
-
-            $.post('/add/reply/' + tid, {
-                content: content,
-                at_pid: atPid,
-                _csrf: _csrf
-            }, function(data) {
-                if (data.status == 'success') {
-                    localStorage.removeItem(key);
-                    location.reload();
-                } else {
-                    layer.msg(data.data, {icon: 2});
-                    $('#post-btn').removeAttr('disabled');
-                    $('#post-btn').html('<i class="fa fa-check "></i> 提交');
-                }
-            }, 'json');
-        }
-        function removeHTMLTag(str) {
-            str = str.replace(/<\/?[^>]*>/g,''); //去除HTML tag
-            str = str.replace(/[ | ]*\n/g,'\n'); //去除行尾空白
-            str=str.replace(/&nbsp;/ig,'');//去掉&nbsp;
-            return str;
         }
     }
 });

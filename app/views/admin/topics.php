@@ -41,9 +41,8 @@
                             </div>
                         </div>
                         {/loop}
-
-                        <div id="pagination" class="pagination"></div>
                     </div>
+                    <div id="pagination" class="pagination" style="margin: 0 10px;"></div>
                 </div>
                 <!-- 底部 -->
                 {$footerLayout}

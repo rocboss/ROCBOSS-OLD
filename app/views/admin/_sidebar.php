@@ -25,11 +25,17 @@
     <div class="meun-item<?php echo $active == 'clubs' ? ' meun-item-active' : ''; ?>">
         <a href="/admin/clubs"><i class="fa fa-cloud fa-fw"></i> 分类管理</a>
     </div>
+    <div class="meun-item<?php echo $active == 'articles' ? ' meun-item-active' : ''; ?>">
+        <a href="/admin/articles"><i class="fa fa-pagelines fa-fw"></i> 文章管理</a>
+    </div>
     <div class="meun-item<?php echo $active == 'topics' ? ' meun-item-active' : ''; ?>">
         <a href="/admin/topics"><i class="fa fa-clipboard fa-fw"></i> 主题管理</a>
     </div>
     <div class="meun-item<?php echo $active == 'replys' ? ' meun-item-active' : ''; ?>">
         <a href="/admin/replys"><i class="fa fa-mail-reply-all fa-fw"></i> 回复管理</a>
+    </div>
+    <div class="meun-item<?php echo $active == 'withdraws' ? ' meun-item-active' : ''; ?>">
+        <a href="/admin/withdraw"><i class="fa fa-credit-card fa-fw"></i> 提现申请</a>
     </div>
     <div class="meun-item<?php echo $active == 'users' ? ' meun-item-active' : ''; ?>">
         <a href="/admin/users"><i class="fa fa-users fa-fw"></i> 用户管理</a>

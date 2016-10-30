@@ -3,7 +3,8 @@ namespace backend;
 
 use \Controller;
 use \Roc;
-
+use \UserModel;
+use \ScoreModel;
 class UserController extends BaseController
 {
     /**
@@ -16,9 +17,7 @@ class UserController extends BaseController
         Roc::controller('frontend\Base')->csrfCheck();
 
         self::__checkManagePrivate();
-
         $data = Roc::request()->data;
-
         $change = [
             'username' => $data->username,
             'email' => $data->email,
@@ -26,22 +25,16 @@ class UserController extends BaseController
             'groupid' => $data->groupid
         ];
 
-        if (!empty($data['password']))
-        {
-            array_merge($change, ['password' => md5($data['password'])]);
+        if (!empty($data->password)) {
+            $change = array_merge($change, ['password' => md5($data->password)]);
         }
 
         $uid = $data['uid'];
-
-        $ret = Roc::model('user')->updateInfo($change, $uid);
-
-        if ($ret > 0)
-        {
+        $ret = UserModel::m()->updateInfo($change, $uid);
+        if ($ret > 0) {
             parent::json('success', '修改成功');
-        }
-        else
-        {
-            parent::json('error', '修改失败');
+        } else {
+            parent::json('error', '修改失败或数据未变动');
         }
     }
 
@@ -56,43 +49,17 @@ class UserController extends BaseController
         self::__checkManagePrivate();
 
         // 直接取最新300条记录
-        $scores = Roc::model('score')->getList($uid, 0, 300);
-
-        if (!empty($scores))
-        {
-            foreach ($scores as &$score)
-            {
+        $scores = ScoreModel::m()->getList($uid, 0, 300);
+        if (!empty($scores)) {
+            foreach ($scores as &$score) {
                 $score['add_time'] = Roc::controller('frontend\Base')->formatTime($score['add_time']);
             }
         }
 
         parent::renderBase(['active' => 'users']);
-
         Roc::render('admin/scores', [
             'scores' => $scores,
             'uid' => $uid
         ]);
-    }
-
-    /**
-     * 检测管理员权限
-     * @param  boolean $force [description]
-     * @return [type]         [description]
-     */
-    private static function __checkManagePrivate($force = false)
-    {
-        if (Roc::controller('frontend\User')->getloginInfo()['groupid'] != 99)
-        {
-            if ($force)
-            {
-                Roc::redirect('/login');
-            }
-
-            parent::json('error', '抱歉，权限不足！');
-        }
-        else
-        {
-            return true;
-        }
     }
 }

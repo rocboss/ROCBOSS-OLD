@@ -6,6 +6,18 @@ class Model
 
     protected $_db;
 
+    /**
+     * 实例化当前Model
+     * @method m
+     * @return [type] [description]
+     */
+    public static function m()
+    {
+        $class = get_called_class();
+
+        return Roc::model(substr($class, 0, (strlen($class) - 5)));
+    }
+
     // 默认Cache缓存时间
     protected static $_expire = 3600;
 
@@ -52,5 +64,50 @@ class Model
                 self::$redis->del($key);
             }
         }
+    }
+
+    /**
+     * 获取单行数据
+     * @method get
+     * @param  [type] $key [description]
+     * @param  [type] $val [description]
+     * @return [type]      [description]
+     */
+    public function get($key, $val)
+    {
+        return $this->_db->from($this->_table)
+                ->where([$key => $val])
+                ->one();
+    }
+
+    /**
+     * 新增数据
+     * @method add
+     * @param  [type] $data [description]
+     */
+    public function add($data)
+    {
+        $this->_db->from($this->_table)
+            ->insert($data)
+            ->execute();
+
+        return $this->_db->insert_id;
+    }
+
+    /**
+     * 更新
+     * @method update
+     * @param  [type]        $id   [description]
+     * @param  [type]        $data [description]
+     * @return [type]              [description]
+     */
+    public function update($id, $data)
+    {
+        $this->_db->from($this->_table)
+                ->where(['id' => $id])
+                ->update($data)
+                ->execute();
+
+        return $this->_db->affected_rows;
     }
 }

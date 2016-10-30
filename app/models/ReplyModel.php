@@ -63,11 +63,17 @@ class ReplyModel extends Model
     }
 
     // 获取Reply数量
-    public function getTotal($condition=[])
+    public function getTotal($condition=[], $force = true)
     {
+        if ($force) {
+            return $this->_db->from($this->_table)
+                    ->where($condition)
+                    ->count('pid');
+        }
         return $this->_db->from($this->_table)
+                ->leftJoin('roc_topic', ['roc_reply.tid' => 'roc_topic.tid'])
                 ->where($condition)
-                ->count('pid');
+                ->count('roc_reply.pid');
     }
 
     // 发布回复

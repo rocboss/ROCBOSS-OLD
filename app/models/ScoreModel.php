@@ -7,7 +7,6 @@ class ScoreModel extends Model
     // 获取积分记录
     public function getRecord($tradeNo)
     {
-        print_r($tradeNo);
         return $this->_db->from($this->_table)
             ->where('trade_no = "'.$tradeNo.'"')
             ->where(['valid' => 1])

@@ -13,7 +13,6 @@
                     <span class="pull-right" style="margin-right: 15px;">共有 {$count} 回复</span>
                 </div>
                 <div class="data-div">
-
                     <div class="feed-activity-list">
                         {loop $replys $reply}
                         <div id="reply-{$reply.pid}" class="feed-element" style="margin: 10px; background: #fff; padding: 20px 15px;">

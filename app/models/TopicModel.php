@@ -22,12 +22,13 @@ class TopicModel extends Model
     {
         $key = __CLASS__.':'.md5(json_encode([__METHOD__, $condition, $sort, $offset, $limit]));
 
+        $sortType = $sort[0];
         return $this->_db->from($this->_table)
                 ->leftJoin('roc_club', ['roc_topic.cid' => 'roc_club.cid'])
                 ->leftJoin('roc_user', ['roc_topic.uid' => 'roc_user.uid'])
                 ->offset($offset)
                 ->limit($limit)
-                ->$sort[0]($sort[1])
+                ->$sortType($sort[1])
                 ->where($condition)
                 ->select([
                     'roc_topic.tid',
@@ -101,10 +102,13 @@ class TopicModel extends Model
     {
         return $this->_db->from('roc_topic')
                 ->rightJoin('roc_collection', ['roc_topic.tid' => 'roc_collection.tid'])
+                ->rightJoin('roc_user', ['roc_topic.uid' => 'roc_user.uid'])
                 ->where(['roc_collection.uid' => $uid, 'roc_collection.valid' => 1, 'roc_topic.valid' => 1])
+                ->sortDesc('roc_collection.id')
                 ->offset($offset)
                 ->limit($limit)
                 ->select([
+                    'roc_collection.id as collection_id',
                     'roc_topic.tid',
                     'roc_topic.cid',
                     'roc_topic.uid',
@@ -122,6 +126,7 @@ class TopicModel extends Model
                     'roc_topic.is_essence',
                     'roc_topic.is_lock',
                     'roc_topic.is_top',
+                    'roc_user.username'
                 ])
                 ->many();
     }
@@ -233,18 +238,5 @@ class TopicModel extends Model
         $this->clearCache(__CLASS__);
 
         return $this->_db->affected_rows;
-    }
-
-    // 裁剪字符串
-    public static function cutSubstr($str_cut, $length = 64)
-    {
-        if (mb_strlen(trim($str_cut), 'utf8') > $length)
-        {
-            return trim(mb_substr($str_cut, 0, $length, 'utf-8')) . '...';
-        }
-        else
-        {
-            return trim($str_cut);
-        }
     }
 }

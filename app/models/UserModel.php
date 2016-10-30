@@ -76,21 +76,16 @@ class UserModel extends Model
     // 新增用户
     public function addUser($data)
     {
-        if (isset($data['password']))
-        {
+        if (isset($data['password'])) {
             $data['password'] = $this->_buildPassword($data['password']);
         }
 
         $result = $this->checkPassConflict($data['email'], $data['username']);
 
-        if ($result === 0)
-        {
+        if ($result === 0) {
             $this->_db->from($this->_table)->insert($data)->execute();
-
             return $this->_db->insert_id;
-        }
-        else
-        {
+        } else {
             return $result;
         }
     }
@@ -127,12 +122,9 @@ class UserModel extends Model
             ->where('username', $username)
             ->one();
 
-        if (empty($ret0) && empty($ret1))
-        {
+        if (empty($ret0) && empty($ret1)) {
             return 0;
-        }
-        else
-        {
+        } else {
             return !empty($ret0) ? -1 : -2;
         }
     }
@@ -148,28 +140,22 @@ class UserModel extends Model
     // 检测用户名是否合法
     public function checkNickname($nickname)
     {
-        if (strlen($nickname) < 3 || mb_strlen($nickname, 'utf-8') < 2)
-        {
+        if (strlen($nickname) < 3 || mb_strlen($nickname, 'utf-8') < 2) {
             return '用户名太短了';
         }
-        if (mb_strlen($nickname, 'utf-8') > 12)
-        {
+        if (mb_strlen($nickname, 'utf-8') > 12) {
             return '用户名太长了';
         }
-        if (preg_match('/\s/', $nickname) || strpos($nickname,' '))
-        {
+        if (preg_match('/\s/', $nickname) || strpos($nickname,' ')) {
             return '用户名不允许存在空格';
         }
-        if (is_numeric(substr($nickname, 0, 1)) || substr($nickname, 0, 1) == "_")
-        {
+        if (is_numeric(substr($nickname, 0, 1)) || substr($nickname, 0, 1) == "_") {
             return '用户名不能以数字和下划线开头';
         }
-        if (substr($nickname, -1, 1) == "_")
-        {
+        if (substr($nickname, -1, 1) == "_") {
             return '用户名不能以下划线结尾';
         }
-        if (!preg_match('/^[\x{4e00}-\x{9fa5}_a-zA-Z0-9]+$/u', $nickname))
-        {
+        if (!preg_match('/^[\x{4e00}-\x{9fa5}_a-zA-Z0-9]+$/u', $nickname)) {
             return '用户名只能用汉字、英文、数字及下划线';
         }
 
@@ -190,12 +176,9 @@ class UserModel extends Model
                     ->where('groupid >', 0)
                     ->one();
 
-        if (!empty($user))
-        {
+        if (!empty($user)) {
             return false;
-        }
-        else
-        {
+        } else {
             return true;
         }
     }
@@ -208,12 +191,9 @@ class UserModel extends Model
                     ->select(['score'])
                     ->one();
 
-        if (!empty($user))
-        {
+        if (!empty($user)) {
             return $user['score'];
-        }
-        else
-        {
+        } else {
             return 0;
         }
     }

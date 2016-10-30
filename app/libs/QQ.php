@@ -10,7 +10,7 @@ class Recorder
         $this->inc = (object) array(
             "appid" => $appid,
             "appkey" => $appkey,
-            "callback" => "http://" . $_SERVER['HTTP_HOST'] . urlencode($callback_url),
+            "callback" => (Roc::request()->secure ? "https://" : "http://") . $_SERVER['HTTP_HOST'] . urlencode($callback_url),
             "scope" => "get_user_info",
             "errorReport" => true
         );
