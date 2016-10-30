@@ -39,7 +39,7 @@
 
           <div class="collapse navbar-collapse pull-left" id="navbar-collapse">
             <ul class="nav navbar-nav">
-              <li {if substr($active, 0, 5) == 'index'}class="active"{/if}><a href="/topic">社区</a></li>
+              <li {if substr($active, 0, 5) == 'index'}class="active"{/if}><a href="/">社区</a></li>
               <li {if $active == 'article'}class="active"{/if}><a href="/article">文章</a></li>
               <li {if $active == 'ask'}class="active"{/if}><a href="https://ask.luoke.io/" target="_blank">语音问答</a></li>
             </ul>
