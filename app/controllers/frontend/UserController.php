@@ -48,8 +48,7 @@ class UserController extends BaseController
                 if (Roc::request()->method == 'POST') {
                     $captcha = json_decode(Roc::request()->data->captcha, true);
                     $geetest = Roc::geetest();
-
-                    if (!$geetest->validate($captcha['geetest_challenge'], $captcha['geetest_validate'], $captcha['geetest_seccode'])) {
+                    if (Roc::get('geetest.switch') && !$geetest->validate($captcha['geetest_challenge'], $captcha['geetest_validate'], $captcha['geetest_seccode'])) {
                         parent::json('error', '行为验证码验证失败');
                     }
 
@@ -323,7 +322,7 @@ class UserController extends BaseController
                         $captcha = json_decode($data->captcha, true);
                         $geetest = Roc::geetest();
 
-                        if ($geetest->validate($captcha['geetest_challenge'], $captcha['geetest_validate'], $captcha['geetest_seccode'])) {
+                        if (!Roc::get('geetest.switch') || $geetest->validate($captcha['geetest_challenge'], $captcha['geetest_validate'], $captcha['geetest_seccode'])) {
                             self::_checkInput($email, $username, $password);
 
                             $return = UserModel::m()->addUser([

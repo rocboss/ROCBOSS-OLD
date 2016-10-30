@@ -31,15 +31,17 @@ define(function(require, exports, module) {
     // 注册
     exports.register = function (captcha) {
         $(document).ready(function () {
-            if (captcha.success) {
-                window.geetestObj = new window.Geetest({
-                    gt : captcha.geetest,
-                    challenge : captcha.challenge
-                });
-                geetestObj.appendTo("#geetest-captcha");
-            } else {
-                $("#geetest-captcha").html('极验行为验证服务未能启动...');
-                $("#register-btn").hide();
+            if (captcha.isOpen) {
+                if (captcha.success) {
+                    window.geetestObj = new window.Geetest({
+                        gt : captcha.geetest,
+                        challenge : captcha.challenge
+                    });
+                    geetestObj.appendTo("#geetest-captcha");
+                } else {
+                    $("#geetest-captcha").html('极验行为验证服务未能启动...');
+                    $("#register-btn").hide();
+                }
             }
             $("#register-btn").on('click', function(event) {
                 event.preventDefault();
@@ -74,9 +76,9 @@ define(function(require, exports, module) {
         });
     }
     var OPTIONS = {
-        login: function() {
+        login: function(isOpen) {
             captcha = geetestObj.getValidate();
-            if (captcha !== false) {
+            if (captcha !== false || isOpen == 0) {
                 result = JSON.stringify(captcha);
                 var account = $.trim($("#account").val());
                 var password = $.trim($("#password").val());
@@ -111,7 +113,7 @@ define(function(require, exports, module) {
         },
         register: function() {
             captcha = geetestObj.getValidate();
-            if (captcha !== false) {
+            if (captcha !== false || isOpen == 0) {
                 result = JSON.stringify(captcha);
                 var username = $('input[name=username]').val();
                 var email = $('input[name=email]').val();

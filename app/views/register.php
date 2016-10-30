@@ -68,6 +68,7 @@
     <script type="text/javascript">
         seajs.use("js/login", function(login) {
             login.register({
+                isOpen: {:(Roc::get('geetest.switch') ? 1 : 0)},
                 success: {$captcha.success},
                 geetest: "{$captcha.geetest}",
                 challenge: "{$captcha.challenge}",
