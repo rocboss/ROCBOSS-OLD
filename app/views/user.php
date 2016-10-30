@@ -2,7 +2,7 @@
   <div class="content-wrapper">
     <section class="content-header">
       <ol class="breadcrumb">
-        <li><a href="/topic"><i class="fa fa-home"></i> 首页</a></li>
+        <li><a href="/"><i class="fa fa-home"></i> 首页</a></li>
         <li class="active">{if $user['uid'] != $loginInfo['uid']}TA{else}我{/if}的主页</li>
       </ol>
     </section>

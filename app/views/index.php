@@ -88,7 +88,7 @@
             <!-- 分类 -->
             <div class="box box-success">
                 <div class="box-body">
-                    <a class="btn btn-block btn-gray{if ($active == 'index-0')} active{/if}" href="/topic">全部</a>
+                    <a class="btn btn-block btn-gray{if ($active == 'index-0')} active{/if}" href="/">全部</a>
                     {loop $clubs $club}
                       <a class="btn btn-block btn-gray{if ($active == 'index-'.$club['cid'])} active{/if}" href="/{$club.cid}/1">{$club.club_name}</a>
                     {/loop}

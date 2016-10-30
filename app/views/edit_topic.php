@@ -3,7 +3,7 @@
   <section class="content-header">
     <ol class="breadcrumb">
       <li><a href="/"><i class="fa fa-home"></i> 首页</a></li>
-      <li><a href="/topic">社区</a></li>
+      <li><a href="/">社区</a></li>
       <li class="active">编辑主题主题</li>
     </ol>
   </section>

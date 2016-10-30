@@ -52,7 +52,7 @@ define(function(require, exports, module) {
                             var per = data.data.per;
                             var pages = Math.ceil(data.data.total / data.data.per);
                             var href = data.data.cid > 0 ? '/' + data.data.cid + '/' : '/';
-                            url = data.data.cid > 0 ? '/' + data.data.cid + '/' + page : '/topic';
+                            url = data.data.cid > 0 ? '/' + data.data.cid + '/' + page : '/';
                             window.history.pushState({
                                 url: url
                             }, null, url);
