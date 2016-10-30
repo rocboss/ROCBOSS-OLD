@@ -6,9 +6,7 @@ return [
     // 切换明暗主题
     ['POST /turn/light', 'frontend\Index:turnLight'],
 
-    ['GET /(topic)', 'frontend\Index:index'],
-
-    ['GET /(@cid:[0-9]+/)@page:[0-9]+', 'frontend\Index:index'],
+    ['GET /((@cid:[0-9]+/)@page:[0-9]+)', 'frontend\Index:index'],
 
     ['GET /search', 'frontend\Index:search'],
 

@@ -63,10 +63,11 @@ CREATE TABLE `roc_collection` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `uid` mediumint(8) unsigned NOT NULL COMMENT '用户ID',
   `tid` int(11) unsigned NOT NULL COMMENT '话题ID',
+  `article_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '文章ID',
   `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
   PRIMARY KEY (`id`),
-  KEY `uid` (`valid`,`uid`,`tid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+  KEY `uid` (`valid`,`uid`,`tid`,`article_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=360 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
 --  Table structure for `roc_config`
@@ -301,3 +302,23 @@ CREATE TABLE `roc_whisper` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ----------------------------
+--  Table structure for `roc_withdraw`
+-- ----------------------------
+DROP TABLE IF EXISTS `roc_withdraw`;
+CREATE TABLE `roc_withdraw` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '提现申请单ID',
+  `uid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '用户ID',
+  `pay_account` varchar(32) NOT NULL DEFAULT '' COMMENT '支付宝账户',
+  `score` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '提现的积分',
+  `should_pay` decimal(8,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '应支付金额',
+  `status` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '状态，0申请中，1审核通过，2审核拒绝',
+  `remark` varchar(128) NOT NULL DEFAULT '' COMMENT '备注',
+  `add_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '申请时间',
+  `handle_uid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '处理者ID',
+  `handle_time` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '处理时间',
+  `valid` tinyint(4) unsigned NOT NULL DEFAULT '1' COMMENT '是否有效，1有效，0删除',
+  PRIMARY KEY (`id`),
+  KEY `INDEX_USER` (`uid`,`valid`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COMMENT='提现申请表';
