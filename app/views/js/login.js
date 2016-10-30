@@ -79,107 +79,116 @@ define(function(require, exports, module) {
     }
     var OPTIONS = {
         login: function(isOpen) {
-            captcha = geetestObj.getValidate();
-            if (captcha !== false || isOpen == 0) {
-                result = JSON.stringify(captcha);
-                var account = $.trim($("#account").val());
-                var password = $.trim($("#password").val());
-
-                if (account == '' || password == '') {
-                    layer.msg('请填写账户和密码', {icon: 2});
+            var result = '';
+            if (isOpen == 1) {
+                captcha = geetestObj.getValidate();
+                if (captcha !== false) {
+                    result = JSON.stringify(captcha);
+                }else {
+                    layer.msg('请正确完成滑动验证码', {icon: 2});
+                    geetestObj.refresh();
                     return false;
                 }
-
-                $("#login-btn").attr('disabled', 'disabled');
-                $("#login-btn").html('<i class="fa fa-spinner fa-spin"></i> 提交中 ...');
-                $.post('/login', {
-                    captcha: result,
-                    account: account,
-                    password: password
-                }, function(data, textStatus, xhr) {
-                    layer.msg(data.data, {icon: (data.status == 'success' ? 1 : 2)});
-                    if (data.status == 'success') {
-                        setTimeout(function () {
-                            window.location.href = '/';
-                        }, 500);
-                    } else {
-                        geetestObj.refresh();
-                        $("#login-btn").removeAttr('disabled');
-                        $("#login-btn").html('登 录');
-                    }
-                }, 'json');
-            } else {
-                layer.msg('请正确完成滑动验证码', {icon: 2});
-                geetestObj.refresh();
             }
+
+            var account = $.trim($("#account").val());
+            var password = $.trim($("#password").val());
+
+            if (account == '' || password == '') {
+                layer.msg('请填写账户和密码', {icon: 2});
+                return false;
+            }
+
+            $("#login-btn").attr('disabled', 'disabled');
+            $("#login-btn").html('<i class="fa fa-spinner fa-spin"></i> 提交中 ...');
+            $.post('/login', {
+                captcha: result,
+                account: account,
+                password: password
+            }, function(data, textStatus, xhr) {
+                layer.msg(data.data, {icon: (data.status == 'success' ? 1 : 2)});
+                if (data.status == 'success') {
+                    setTimeout(function () {
+                        window.location.href = '/';
+                    }, 500);
+                } else {
+                    geetestObj.refresh();
+                    $("#login-btn").removeAttr('disabled');
+                    $("#login-btn").html('登 录');
+                }
+            }, 'json');
         },
         register: function(isOpen) {
-            captcha = geetestObj.getValidate();
-            if (captcha !== false || isOpen == 0) {
-                result = JSON.stringify(captcha);
-                var username = $('input[name=username]').val();
-                var email = $('input[name=email]').val();
-                var password = $('input[name=password]').val();
-                var repassword = $('input[name=repassword]').val();
-                if (username == '' || email == '' || password == '' || repassword == '') {
-                    layer.msg('所有项都不允许为空', {icon: 2});
-                    return false;
+            var result = '';
+            if (isOpen == 1) {
+                captcha = geetestObj.getValidate();
+                if (captcha !== false) {
+                    result = JSON.stringify(captcha);
+                } else {
+                    layer.msg('请正确完成滑动验证码', {icon: 2});
+                    geetestObj.refresh();
                 }
-                if (password.length<8) {
-                    layer.msg('密码长度不能少于八位', {icon: 2});
-                    $('input[name=password]').focus();
-                    return false;
-                }
-
-                if (password !== repassword) {
-                    layer.msg('两次密码不一致', {icon: 2});
-                    $('input[name=password]').focus();
-                    return false;
-                }
-
-                var o = $("#register-btn").html();
-                $("#register-btn").attr('disabled', 'disabled');
-                $("#register-btn").html('<i class="fa fa-spinner fa-pulse"></i> 请求中...');
-                setTimeout(function (){
-                    $.post('/register', {
-                        captcha: result,
-                        username : username,
-                        email : email,
-                        password : password,
-                    }, function(data) {
-                        if (data.code == 10100) {
-                            geetestObj.refresh();
-                        }
-                        if (data.code == 10401 || data.code == 10404) {
-                            geetestObj.refresh();
-                            $('input[name=email]').focus();
-                        }
-                        if (data.code == 10402 || data.code == 10405) {
-                            geetestObj.refresh();
-                            $('input[name=username]').focus();
-                        }
-                        if (data.code == 10403) {
-                            geetestObj.refresh();
-                            $('input[name=password]').focus();
-                        }
-
-                        $("#register-btn").removeAttr('disabled');
-                        $("#register-btn").html(o);
-                        if (data.code == 10000) {
-                            layer.msg(data.msg, {icon: 1});
-                            setTimeout(function() {
-                                window.location.href = '/login';
-                            }, 800);
-                        } else {
-                            geetestObj.refresh();
-                            layer.msg(data.msg, {icon: 2});
-                        }
-                    }, 'json');
-                }, 500);
-            } else {
-                layer.msg('请正确完成滑动验证码', {icon: 2});
-                geetestObj.refresh();
             }
+
+            var username = $('input[name=username]').val();
+            var email = $('input[name=email]').val();
+            var password = $('input[name=password]').val();
+            var repassword = $('input[name=repassword]').val();
+            if (username == '' || email == '' || password == '' || repassword == '') {
+                layer.msg('所有项都不允许为空', {icon: 2});
+                return false;
+            }
+            if (password.length<8) {
+                layer.msg('密码长度不能少于八位', {icon: 2});
+                $('input[name=password]').focus();
+                return false;
+            }
+
+            if (password !== repassword) {
+                layer.msg('两次密码不一致', {icon: 2});
+                $('input[name=password]').focus();
+                return false;
+            }
+
+            var o = $("#register-btn").html();
+            $("#register-btn").attr('disabled', 'disabled');
+            $("#register-btn").html('<i class="fa fa-spinner fa-pulse"></i> 请求中...');
+            setTimeout(function (){
+                $.post('/register', {
+                    captcha: result,
+                    username : username,
+                    email : email,
+                    password : password,
+                }, function(data) {
+                    if (data.code == 10100) {
+                        geetestObj.refresh();
+                    }
+                    if (data.code == 10401 || data.code == 10404) {
+                        geetestObj.refresh();
+                        $('input[name=email]').focus();
+                    }
+                    if (data.code == 10402 || data.code == 10405) {
+                        geetestObj.refresh();
+                        $('input[name=username]').focus();
+                    }
+                    if (data.code == 10403) {
+                        geetestObj.refresh();
+                        $('input[name=password]').focus();
+                    }
+
+                    $("#register-btn").removeAttr('disabled');
+                    $("#register-btn").html(o);
+                    if (data.code == 10000) {
+                        layer.msg(data.msg, {icon: 1});
+                        setTimeout(function() {
+                            window.location.href = '/login';
+                        }, 800);
+                    } else {
+                        geetestObj.refresh();
+                        layer.msg(data.msg, {icon: 2});
+                    }
+                }, 'json');
+            }, 500);
         },
         toJoin: function(objDom, url) {
             var o = $(".join-btn").html();
