@@ -11,20 +11,22 @@ define(function(require, exports, module) {
     // 登录
     exports.login = function (captcha) {
         $(document).ready(function () {
-            if (captcha.success) {
-                window.geetestObj = new window.Geetest({
-                    gt : captcha.geetest,
-                    challenge : captcha.challenge
-                });
-                geetestObj.appendTo("#geetest-captcha");
-            } else {
-                $("#geetest-captcha").html('极验行为验证服务未能启动...');
-                $("#login-btn").hide();
+            if (captcha.isOpen) {
+                if (captcha.success) {
+                    window.geetestObj = new window.Geetest({
+                        gt : captcha.geetest,
+                        challenge : captcha.challenge
+                    });
+                    geetestObj.appendTo("#geetest-captcha");
+                } else {
+                    $("#geetest-captcha").html('极验行为验证服务未能启动...');
+                    $("#login-btn").hide();
+                }
             }
 
             $("#login-btn").on('click', function(event) {
                 event.preventDefault();
-                OPTIONS.login();
+                OPTIONS.login(captcha.isOpen);
             });
         })
     }
@@ -45,7 +47,7 @@ define(function(require, exports, module) {
             }
             $("#register-btn").on('click', function(event) {
                 event.preventDefault();
-                OPTIONS.register();
+                OPTIONS.register(captcha.isOpen);
             });
         });
     }
@@ -111,7 +113,7 @@ define(function(require, exports, module) {
                 geetestObj.refresh();
             }
         },
-        register: function() {
+        register: function(isOpen) {
             captcha = geetestObj.getValidate();
             if (captcha !== false || isOpen == 0) {
                 result = JSON.stringify(captcha);
