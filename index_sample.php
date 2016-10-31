@@ -48,7 +48,7 @@ Roc::set([
     # Redis密码，无则留空
     'redis.auth' => '',
 
-# ======> QQ一键登录相关配置项(connect.qq.com)
+# ======> QQ一键登录相关配置项(connect.qq.com)，网站回调域示例：http://www.youdomain.com/register/qq
 
     # AppID
     'qq.appid' => '',
