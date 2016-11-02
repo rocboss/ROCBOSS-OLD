@@ -21,6 +21,8 @@ Roc::set([
 
     # 私信消耗积分
     'system.score.whisper' => 10,
+    # 允许注册true，不允许false
+    'system.register.switch' => false,
 
 # ======> 数据库配置
 
