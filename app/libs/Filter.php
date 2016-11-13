@@ -49,7 +49,7 @@ class Filter
     public function out($data)
     {
         if (is_string($data))
-        {            
+        {
             return $data = stripslashes($data);
         }
         else
@@ -79,7 +79,7 @@ class Filter
         $data = str_replace(["\n", " "], ["##br/##", "##nbsp;"], $data);
 
         $data = htmlspecialchars($data);
-        
+
         $data = str_replace(["##br/##", "##nbsp;"], ["<br/>", "&nbsp;"], $data);
 
         return $this->in($data);
@@ -108,7 +108,7 @@ class Filter
     {
         $data = $this->out($data);
 
-        if ($changeEmoji) 
+        if ($changeEmoji)
         {
             $data = preg_replace("/<img src=\"\/app\/views\/emoji\/(\d+\.gif)\".+?>/i", '<img class="emoji" src="images/emoji/${1}"/>', $data);
         }
@@ -120,22 +120,21 @@ class Filter
     {
         $this->mAllowTag = empty($AllowTag) ? $this->mAllowTag : $AllowTag;
 
-        $this->mXss = strip_tags($html, '<' . implode('><', $this->mAllowTag) . '>');
+        if (is_array($html) && !empty($html)) {
+            static::doFilter(implode(' ', $html), $charset, $AllowTag);
+        } else {
+            $this->mXss = strip_tags($html, '<' . implode('><', $this->mAllowTag) . '>');
 
-        if (empty($this->mXss))
-        {
-            $this->mOk = FALSE;
+            if (empty($this->mXss)) {
+                $this->mOk = FALSE;
+                return ;
+            }
 
-            return ;
+            $this->mXss = "<meta http-equiv=\"Content-Type\" content=\"text/html;charset={$charset}\"><nouse>" . $this->mXss . "</nouse>";
+            $this->mDom = new DOMDocument();
+            $this->mDom->strictErrorChecking = FALSE;
+            $this->mOk = @$this->mDom->loadHTML($this->mXss);
         }
-
-        $this->mXss = "<meta http-equiv=\"Content-Type\" content=\"text/html;charset={$charset}\"><nouse>" . $this->mXss . "</nouse>";
-
-        $this->mDom = new DOMDocument();
-
-        $this->mDom->strictErrorChecking = FALSE;
-
-        $this->mOk = @$this->mDom->loadHTML($this->mXss);
     }
 
     /**
@@ -170,7 +169,7 @@ class Filter
         $html = strip_tags($this->mDom->saveHTML(), '<' . implode('><', $this->mAllowTag) . '>');
 
         $html = preg_replace('/^\n(.*)\n$/s', '$1', $html);
-    
+
         return $html;
     }
 

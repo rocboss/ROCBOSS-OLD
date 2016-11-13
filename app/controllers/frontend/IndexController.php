@@ -83,10 +83,14 @@ class IndexController extends BaseController
             'total' => 0
         ];
 
-        if (strlen($query->q) >= 2) {
-            $data = self::searchTopicList(Roc::filter()->topicInWeb($query->q), $page);
+        if (!is_string($query->q)) {
+            $error = '搜索参数不合法';
         } else {
-            $error = '搜索关键字太短，要不少于两个字符哦~';
+            if (strlen($query->q) >= 2) {
+                $data = self::searchTopicList(Roc::filter()->topicInWeb($query->q), $page);
+            } else {
+                $error = '搜索关键字太短，要不少于两个字符哦~';
+            }
         }
 
         parent::renderBase(['active' => 'search']);
