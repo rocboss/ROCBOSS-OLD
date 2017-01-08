@@ -1,0 +1,267 @@
+@charset "utf-8";
+/* CSS Document */
+/*外层框架样式*/
+
+html,body {
+	width:100%; height:100%;
+}
+#wrap {
+	background-color: #eff3f6;
+	position:relative; height:auto; min-height:100%;
+}
+@media (min-width: 660px) #wrap {
+	min-width: 650px;
+}
+@media (min-width: 768px) #wrap {
+	width: 100%;
+	min-width: 750px;
+}
+@media (min-width: 992px) #wrap {
+	width: 100%;
+	min-width: 970px;
+}
+@media (min-width: 1200px) #wrap {
+	width: 100%;
+	min-width: 1170px;
+}
+.leftMeun {
+	position:absolute; top:0; bottom:0; left:0; z-index:99; width:180px;
+	background-color: #4d5e70;
+}
+.leftMeun >div {
+	padding-left: 20px;
+}
+#rightContent {
+	/*position: absolute;*/
+	
+	height:100%; min-height:100%;  padding-left:180px;
+	background-color: #eff3f6;
+}
+/*左侧菜单栏*/
+
+#logoDiv {
+	padding-top: 20px;
+	padding-bottom: 20px;
+	height: 70px;
+	background-color: #354457;
+	font-size: 17px;
+	color: #fff;
+	vertical-align: bottom;
+}
+#logo {
+	height: 30px;
+	padding-right: 5px;
+}
+#logoDiv span {
+	vertical-align: bottom;
+}
+#personInfor {
+	padding: 10px 5px 10px;
+	margin: 0 5px;
+	color: #b3bcc5;
+	border-bottom: 1px solid #354457;
+	overflow-x: hidden;
+	padding-left: 20px;
+}
+#personInfor p {
+	font-size: 12px;
+	margin-left: -5px;
+}
+#personInfor a {
+	color: #B3BCC5;
+	text-decoration: underline;
+}
+#userName {
+	font-size: 15px!important;
+	padding: 0;
+	margin: 0;
+}
+.line-div {
+	color: #F00;
+	height: 5px;
+}
+.meun dl {
+	padding: 0 10px;
+}
+.meun-title {
+	color: #828e9a;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	font-size: 14px;
+	font-weight: bold;
+}
+.meun-item {
+	line-height: 40px;
+	height: 40px;
+	color: #aab1b7;
+	cursor: pointer;
+}
+.meun-item a {
+	color: #aab1b7;
+	display: block;
+}
+.meun-item-active a {
+	color: #c4c7cc;
+	display: block;
+}
+.meun-item img {
+	padding-right: 8px;
+	height: 20px;
+}
+.meun-item-active {
+	background-color: #3d4e60;
+	border-right: 4px solid #647f9d;
+	color: #fff;
+}
+/*右侧具体内容栏目*/
+
+.check-div {
+	height: 70px;
+	line-height: 70px;
+	*line-height: 60px;
+	background-color: #fff;
+	padding-left: 30px;
+	min-width: 824px !important;
+	box-sizing: border-box;
+}
+.check-div button {
+	font-size: 12px;
+	font-weight: bold;
+}
+.check-div select {
+	height: 30px;
+	width: 100px;
+	display: inline;
+}
+.check-div input {
+	width: 200px !important;
+	display: inline;
+}
+.tableHeader {
+	height: 35px;
+	line-height: 35px;
+	font-size: 12px;
+	font-weight: bold;
+	color: #646987;
+	background-color: #e3e8ee;
+	padding: 0 30px;
+	text-align: center;
+}
+.codeTop {
+	text-align: right;
+}
+.tablebody {
+	margin: 20px 30px;
+	text-align: center;
+}
+.tablebody .row {
+	margin-top: 10px;
+	background-color: #fff;
+	height: 70px;
+	line-height: 70px;
+}
+.footer {
+	float: right;
+	margin-right: 20px
+}
+.modal-header {
+	/*background-color: #e3e8ee;*/
+}
+.modal-title {
+	font-weight: bold;
+}
+.expand-col {
+	padding: 0;
+}
+.levl2 {
+	padding-left: 30px;
+}
+.levl3 {
+	padding-left: 40px;
+}
+.sitTable {} .sitTable table {
+	border-top: none;
+	background-color: #FFF;
+}
+/*表格上部边框线*/
+
+.sitTable .table>tbody>tr:first-child>td {
+	border-top: none;
+}
+.table>tbody>tr>td,
+.table>tbody>tr>th,
+.table>tfoot>tr>td,
+.table>tfoot>tr>th,
+.table>thead>tr>td,
+.table>thead>tr>th {
+	vertical-align: middle !important;
+}
+.btn {
+	border: none;
+}
+.btn-danger {} .toggle-btn {
+	display: none;
+	width: 52px;
+	height: 50px;
+	font-size: 20px;
+	padding: 15px;
+	cursor: pointer;
+	float: left;
+	color: #212121;
+	-moz-transition: all 0.2s ease-out 0s;
+	-webkit-transition: all 0.2s ease-out 0s;
+	transition: all 0.2s ease-out 0s;
+}
+.pd0px {
+	padding-left: 200px!important;
+}
+
+select {
+	padding: 0 auto!important;
+}
+/*进度条样式*/
+@media (max-width: 767px) {
+	#rightContent {
+		padding-left: 0;
+	}
+	.leftMeun {
+		display: none;
+	}
+	.toggle-btn {
+		display: block;
+	}
+}
+
+.input-xs {
+	height: 25px;
+	line-height: 25px;
+}
+.btn-white {
+	background: #fff;
+	border: 1px solid #ccc!important;
+	font-weight: normal!important;
+	margin-right: 10px;
+}
+/*颜色*/
+
+.gray {
+	color: #b7b7b7;
+	font-weight: normal;
+	padding: 0 10px;
+}
+.footer .glyphicon {
+	font-size: 12px;
+	color: #00BDEF;
+	padding: 4px;
+	background-color: #fff;
+	margin-right: 10px;
+}
+.zhi {
+	margin-top: 33px;
+	border-radius: 0!important;
+	width: 50px!important;
+	height: 21px!important;
+	line-height: 20px;
+	border: none;
+	box-shadow: none!important;
+}

@@ -2,7 +2,7 @@
     <div id="logo-container">
         <p>
             <a href="/admin" style="color: #fff; text-decoration: none;">
-                <img id="logo" src="{:'/'.Roc::get('system.views.path').'/'}admin/img/logo.png">
+                <img id="logo" src="/vendor/admin/img/logo.png">
                 <span>ROCBOSS</span>
             </a>
         </p>
