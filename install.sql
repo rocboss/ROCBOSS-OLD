@@ -46,13 +46,13 @@ CREATE TABLE `roc_club` (
   `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
   PRIMARY KEY (`cid`),
   KEY `sort` (`sort`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
 --  Records of `roc_club`
 -- ----------------------------
 BEGIN;
-INSERT INTO `roc_club` VALUES ('1', '默认分类', '0', '1'), ('2', '奇闻共享', '0', '1'), ('3', '天下趣事', '0', '1'), ('4', '灌水专区', '0', '1'), ('5', '商业合作', '0', '1');
+INSERT INTO `roc_club` VALUES ('1', '技术交流', '0', '1'), ('2', '天下杂谈', '0', '1'), ('3', '心情分享', '0', '1'), ('4', '灌水专区', '0', '1');
 COMMIT;
 
 -- ----------------------------
@@ -66,8 +66,8 @@ CREATE TABLE `roc_collection` (
   `article_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '文章ID',
   `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
   PRIMARY KEY (`id`),
-  KEY `uid` (`valid`,`uid`,`tid`,`article_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=360 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+  KEY `uid` (`valid`,`uid`,`tid`,`article_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
 --  Table structure for `roc_config`
@@ -84,7 +84,7 @@ CREATE TABLE `roc_config` (
 --  Records of `roc_config`
 -- ----------------------------
 BEGIN;
-INSERT INTO `roc_config` VALUES ('description', '最前沿的社区交流，最纯粹的技术切磋，一款优雅而简约的垂直微社区。'), ('keywords', 'BBS,微社区'), ('rockey', '3f#23fHN31&9@1'), ('sitename', 'ROCBOSS');
+INSERT INTO `roc_config` VALUES ('description', '最前沿的社区交流，最纯粹的技术切磋，一款优雅而简约的垂直微社区。'), ('keywords', 'BBS,社区,微社区'), ('rockey', 'z5fiz0ps4r9z'), ('sitename', 'ROCBOSS');
 COMMIT;
 
 -- ----------------------------
@@ -111,13 +111,13 @@ CREATE TABLE `roc_link` (
   `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否有效，1有效，0无效',
   PRIMARY KEY (`id`),
   KEY `sort` (`sort`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
 --  Records of `roc_link`
 -- ----------------------------
 BEGIN;
-INSERT INTO `roc_link` VALUES ('1', 'ROCBOSS', 'https://www.rocboss.com', '50', '1'), ('2', 'ROC\'sMe', 'http://rocs.me', '30', '1'), ('3', 'Google', 'https://www.google.com', '10', '1');
+INSERT INTO `roc_link` VALUES ('1', 'ROCBOSS', 'https://www.rocboss.com', '50', '1');
 COMMIT;
 
 -- ----------------------------
@@ -243,9 +243,10 @@ CREATE TABLE `roc_topic` (
   `is_top` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '0普通，1置顶',
   `valid` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否删除，0删除，1正常',
   PRIMARY KEY (`tid`),
-  KEY `cid` (`cid`),
-  KEY `uid` (`uid`),
-  KEY `last_time` (`last_time`)
+  KEY `cid` (`valid`,`cid`),
+  KEY `uid` (`valid`,`uid`),
+  KEY `last_time` (`valid`,`last_time`),
+  KEY `post_time` (`valid`,`post_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
@@ -258,11 +259,14 @@ CREATE TABLE `roc_user` (
   `phone` char(11) NOT NULL DEFAULT '' COMMENT '手机号码',
   `username` char(32) NOT NULL COMMENT '用户名',
   `password` char(32) NOT NULL DEFAULT '' COMMENT 'MD5后的密码',
+  `salt` char(8) NOT NULL DEFAULT '' COMMENT '盐值',
   `score` mediumint(8) NOT NULL DEFAULT '0' COMMENT '用户积分',
   `reg_time` int(11) unsigned NOT NULL COMMENT '注册时间',
   `last_time` int(11) NOT NULL COMMENT '最后活跃时间',
   `qq_openid` char(32) NOT NULL DEFAULT '' COMMENT 'QQ授权openID',
   `weibo_openid` char(32) NOT NULL DEFAULT '' COMMENT '微博授权openID',
+  `wx_openid` char(32) NOT NULL DEFAULT '' COMMENT '微信OPENID',
+  `wx_unionid` char(128) NOT NULL DEFAULT '' COMMENT '微信UnionID',
   `client_id` char(32) NOT NULL DEFAULT '' COMMENT 'ClientID，用于APP推送',
   `client_os` char(16) NOT NULL DEFAULT '' COMMENT 'APP操作系统OS',
   `token` char(32) NOT NULL DEFAULT '' COMMENT '客户端Token',
@@ -274,14 +278,15 @@ CREATE TABLE `roc_user` (
   KEY `qq` (`valid`,`qq_openid`),
   KEY `weibo` (`valid`,`weibo_openid`),
   KEY `email` (`valid`,`email`),
-  KEY `phone` (`valid`,`phone`)
+  KEY `phone` (`valid`,`phone`),
+  KEY `weixin` (`valid`,`wx_unionid`,`wx_openid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
 --  Records of `roc_user`
 -- ----------------------------
 BEGIN;
-INSERT INTO `roc_user` VALUES ('1', 'admin@admin.com', '18866668888', 'admin', 'f5bb0c8de146c67b44babbf4e6584cc0', '5000', '1464624000', '1464624000', '', '', '', '', '', '0', '99', '1');
+INSERT INTO `roc_user` VALUES ('1', 'admin@admin.com', '18399998888', 'admin', 'f5bb0c8de146c67b44babbf4e6584cc0', '9is38gt5', '5000', '1483879807', '1483879807', '', '', '', '', '', '', '', '0', '99', '1');
 COMMIT;
 
 -- ----------------------------
@@ -301,8 +306,6 @@ CREATE TABLE `roc_whisper` (
   KEY `uid` (`at_uid`,`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
-SET FOREIGN_KEY_CHECKS = 1;
-
 -- ----------------------------
 --  Table structure for `roc_withdraw`
 -- ----------------------------
@@ -321,4 +324,6 @@ CREATE TABLE `roc_withdraw` (
   `valid` tinyint(4) unsigned NOT NULL DEFAULT '1' COMMENT '是否有效，1有效，0删除',
   PRIMARY KEY (`id`),
   KEY `INDEX_USER` (`uid`,`valid`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COMMENT='提现申请表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='提现申请表';
+
+SET FOREIGN_KEY_CHECKS = 1;
