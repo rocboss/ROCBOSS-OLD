@@ -22,17 +22,24 @@
 5. 支持伪静态（建议使用Linux操作系统，**不支持虚拟主机**!）
 
 **安装步骤**
+
 1. 配置网站指向到 web/ 目录下
+
 2. 导入 install.sql 数据库文件
-3. 修改配置文件，**app/config/** 下的文件需要分别重命名为 _base.php, _othere.php, _database.php，然后根据注释修改配置。
+
+3. 修改配置文件，**app/config/** 下的文件需要分别重命名为 _base.php,_othere.php,_database.php，然后根据注释修改配置。
+
 4. 新建并设置 app/cache 目录777权限
+
 5. 配置文件完全填写结束后，访问首页，管理员登陆后，可进入管理地址 : `你的网址/admin`， 默认管理员 `admin` 密码 `123123123`
+
 6. 关于伪静态，apache环境直接使用 .htaccess 文件，nginx使用如下规则：
     ```
     location / {
         try_files $uri $uri/ /index.php;
     }
     ```
+
 7. 由于使用[七牛云存储][1]，所以需要配置图片处理样式，分割符为“ - ”，必须配置，否则图片无法使用
     - - -
         名称： `800`
