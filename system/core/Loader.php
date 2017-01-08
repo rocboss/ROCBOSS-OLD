@@ -30,28 +30,22 @@ class Loader
     {
         $obj = null;
         
-        if (isset($this->classes[$name]))
-        {
+        if (isset($this->classes[$name])) {
             list($class, $params, $callback) = $this->classes[$name];
             
             $exists = isset($this->instances[$name]);
             
-            if ($shared)
-            {
+            if ($shared) {
                 $obj = ($exists) ? $this->getInstance($name) : $this->newInstance($class, $params);
                 
-                if (!$exists)
-                {
+                if (!$exists) {
                     $this->instances[$name] = $obj;
                 }
-            }
-            else
-            {
+            } else {
                 $obj = $this->newInstance($class, $params);
             }
             
-            if ($callback && (!$shared || !$exists))
-            {
+            if ($callback && (!$shared || !$exists)) {
                 $ref = array(
                     &$obj
                 );
@@ -69,13 +63,11 @@ class Loader
     
     public function newInstance($class, array $params = array())
     {
-        if (is_callable($class))
-        {
+        if (is_callable($class)) {
             return call_user_func_array($class, $params);
         }
         
-        switch (count($params))
-        {
+        switch (count($params)) {
             case 0:
                 return new $class();
             case 1:
@@ -103,23 +95,19 @@ class Loader
     
     public static function autoload($enabled = true, $dirs = array())
     {
-        if ($enabled)
-        {
+        if ($enabled) {
             spl_autoload_register(array(
                 __CLASS__,
                 'loadClass'
             ));
-        }
-        else
-        {
+        } else {
             spl_autoload_unregister(array(
                 __CLASS__,
                 'loadClass'
             ));
         }
         
-        if (!empty($dirs))
-        {
+        if (!empty($dirs)) {
             self::addDirectory($dirs);
         }
     }
@@ -131,11 +119,9 @@ class Loader
             '_'
         ), '/', $class) . '.php';
         
-        foreach (self::$dirs as $dir)
-        {
+        foreach (self::$dirs as $dir) {
             $file = $dir . '/' . $class_file;
-            if (file_exists($file))
-            {
+            if (file_exists($file)) {
                 require $file;
                 return;
             }
@@ -144,17 +130,14 @@ class Loader
     
     public static function addDirectory($dir)
     {
-        if (is_array($dir) || is_object($dir))
-        {
-            foreach ($dir as $value)
-            {
+        if (is_array($dir) || is_object($dir)) {
+            foreach ($dir as $value) {
                 self::addDirectory($value);
             }
-        }
-        else if (is_string($dir))
-        {
-            if (!in_array($dir, self::$dirs))
+        } elseif (is_string($dir)) {
+            if (!in_array($dir, self::$dirs)) {
                 self::$dirs[] = $dir;
+            }
         }
     }
 }

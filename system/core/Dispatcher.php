@@ -5,93 +5,82 @@ namespace system\core;
 class Dispatcher
 {
     protected $events = [];
-    
+
     protected $filters = [];
-    
+
     public function run($name, array $params = [])
     {
         $output = '';
-        
-        if (!empty($this->filters[$name]['before']))
-        {
+
+        if (!empty($this->filters[$name]['before'])) {
             $this->filter($this->filters[$name]['before'], $params, $output);
         }
-        
+
         $output = $this->execute($this->get($name), $params);
-        
-        if (!empty($this->filters[$name]['after']))
-        {
+
+        if (!empty($this->filters[$name]['after'])) {
             $this->filter($this->filters[$name]['after'], $params, $output);
         }
-        
+
         return $output;
     }
-    
+
     public function set($name, $callback)
     {
         $this->events[$name] = $callback;
     }
-    
+
     public function get($name)
     {
         return isset($this->events[$name]) ? $this->events[$name] : null;
     }
-    
+
     public function has($name)
     {
         return isset($this->events[$name]);
     }
-    
+
     public function clear($name = null)
     {
-        if ($name !== null)
-        {
+        if ($name !== null) {
             unset($this->events[$name]);
             unset($this->filters[$name]);
-        }
-        else
-        {
+        } else {
             $this->events  = [];
             $this->filters = [];
         }
     }
-    
+
     public function hook($name, $type, $callback)
     {
         $this->filters[$name][$type][] = $callback;
     }
-    
+
     public function filter($filters, &$params, &$output)
     {
         $args = [&$params, &$output];
 
-        foreach ($filters as $callback)
-        {
+        foreach ($filters as $callback) {
             $continue = $this->execute($callback, $args);
 
-            if ($continue === false)
-            {
+            if ($continue === false) {
                 break;
             }
         }
     }
-    
+
     public static function execute($callback, array &$params = [])
     {
-        if (is_callable($callback))
-        {
+        if (is_callable($callback)) {
             return is_array($callback) ? self::invokeMethod($callback, $params) : self::callFunction($callback, $params);
-        }
-        else
-        {
+        } else {
             throw new \Exception('Invalid callback specified.');
         }
     }
-    
+
     public static function callFunction($func, array &$params = [])
     {
-        switch (count($params))
-        {
+        switch (count($params)) {
             case 0:
                 return $func();
             case 1:
@@ -108,15 +97,14 @@ class Dispatcher
                 return call_user_func_array($func, $params);
         }
     }
-    
+
     public static function invokeMethod($func, array &$params = [])
     {
         list($class, $method) = $func;
-        
+
         $instance = is_object($class);
-        
-        switch (count($params))
-        {
+
+        switch (count($params)) {
             case 0:
                 return ($instance) ? $class->$method() : $class::$method();
             case 1:
@@ -133,7 +121,7 @@ class Dispatcher
                 return call_user_func_array($func, $params);
         }
     }
-    
+
     public function reset()
     {
         $this->events  = [];

@@ -4983,7 +4983,7 @@ _e(function (E, $) {
         }
         var script = document.createElement("script");
         script.type = "text/javascript";
-        script.src = "/app/views/vendor/highlight.min.js";
+        script.src = "/vendor/highlight.min.js";
         document.body.appendChild(script);
     }
 

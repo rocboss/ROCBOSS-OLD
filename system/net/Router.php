@@ -25,8 +25,7 @@ class Router
             '*'
         );
         
-        if (strpos($pattern, ' ') !== false)
-        {
+        if (strpos($pattern, ' ') !== false) {
             list($method, $url) = explode(' ', trim($pattern), 2);
             
             $methods = explode('|', $method);
@@ -37,10 +36,8 @@ class Router
     
     public function route(Request $request)
     {
-        while ($route = $this->current())
-        {
-            if ($route !== false && $route->matchMethod($request->method) && $route->matchUrl($request->url))
-            {
+        while ($route = $this->current()) {
+            if ($route !== false && $route->matchMethod($request->method) && $route->matchUrl($request->url)) {
                 return $route;
             }
             $this->next();

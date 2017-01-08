@@ -1,21 +1,21 @@
 <?php
-
 namespace frontend;
 
-use \Controller;
-use \Roc;
-use \UserModel;
-use \ScoreModel;
-use \TopicModel;
-use \ReplyModel;
-use \FollowModel;
-use \WhisperModel;
-use \ArticleModel;
-use \RelationModel;
-use \AttachmentModel;
-use \NotificationModel;
+use Roc;
+use UserModel;
+use ScoreModel;
+use TopicModel;
+use ReplyModel;
+use FollowModel;
+use WhisperModel;
+use ArticleModel;
+use RelationModel;
+use AttachmentModel;
+use NotificationModel;
+
 class UserController extends BaseController
 {
+    public static $expire = 604800;
     public static $per = 12;
 
     // VIP2 升级价格(积分)
@@ -78,7 +78,7 @@ class UserController extends BaseController
                             if (md5($data['password']) === $user['password']) {
                                 Roc::redis()->delete(md5($user['uid']));
 
-                                self::setLoginInfo($user['uid'], $user['username'], $user['groupid']);
+                                self::setLoginInfo($user['uid'], $user['username'], $user['groupid'], $user['salt']);
 
                                 parent::json('success', '登陆成功');
                             } else {
@@ -137,7 +137,7 @@ class UserController extends BaseController
                     $return = UserModel::m()->getByQQOpenID($openid);
 
                     if (!empty($return)) {
-                        self::setLoginInfo($return['uid'], $return['username'], $return['groupid']);
+                        self::setLoginInfo($return['uid'], $return['username'], $return['groupid'], $return['salt']);
 
                         Roc::app()->redirect('/');
                     } else {
@@ -159,16 +159,16 @@ class UserController extends BaseController
                                     'email' => $email,
                                     'password' => $password,
                                     'qq_openid' => $openid,
-                                    'reg_time' => time(),
-                                    'last_time' => time(),
                                 ]);
 
                                 if ($return > 0) {
+                                    $user = UserModel::m()->getByUid($return);
+
                                     if (!empty($avatar)) {
                                         Roc::qiniu()->fetch($avatar, 'avatar/'.$return);
                                     }
 
-                                    self::setLoginInfo($return, $username, 1);
+                                    self::setLoginInfo($user['uid'], $user['username'], $user['groupid'], $user['salt']);
 
                                     die(parent::renderJson(10000));
                                 } else {
@@ -187,7 +187,7 @@ class UserController extends BaseController
                                     if ($return['password'] == md5($password)) {
                                         if (empty($return['qq_openid'])) {
                                             UserModel::m()->updateInfo(['qq_openid' => $openid], $return['uid']);
-                                            self::setLoginInfo($return['uid'], $return['username'], $return['groupid']);
+                                            self::setLoginInfo($return['uid'], $return['username'], $return['groupid'], $return['salt']);
 
                                             die(parent::renderJson(10000));
                                         } else {
@@ -201,7 +201,7 @@ class UserController extends BaseController
                                 }
                             }
                         } else {
-                            self::renderBase(['page_title' => 'QQ互联登录', 'active' => 'qq-join']);
+                            self::renderBase(['page_title' => 'QQ互联登录', 'active' => 'qq-join', 'asset' => 'o_join']);
 
                             Roc::render('o_join', [
                                 'avatar' => $avatar,
@@ -219,13 +219,13 @@ class UserController extends BaseController
                 $token = Roc::weibo()->getAccessToken('code', ['code'=>Roc::request()->query->code, 'redirect_uri'=>Roc::get('weibo.callback')]);
                 if ($token) {
                     $_SESSION['token'] = serialize($token);
-                    $client = new \WeiboClient(Roc::get('weibo.akey') , Roc::get('weibo.skey'), $token['access_token']);
+                    $client = new \WeiboClient(Roc::get('weibo.akey'), Roc::get('weibo.skey'), $token['access_token']);
                     $uid = $client->get_uid()['uid'];
                     $userInfo = $client->show_user_by_id($uid);
                     $return = UserModel::m()->getByWeiboID($userInfo['id']);
 
                     if (!empty($return)) {
-                        self::setLoginInfo($return['uid'], $return['username'], $return['groupid']);
+                        self::setLoginInfo($return['uid'], $return['username'], $return['groupid'], $return['salt']);
 
                         Roc::app()->redirect('/login');
                     } else {
@@ -247,16 +247,15 @@ class UserController extends BaseController
                                     'email' => $email,
                                     'password' => $password,
                                     'weibo_openid' => $userInfo['id'],
-                                    'reg_time' => time(),
-                                    'last_time' => time(),
                                 ]);
 
                                 if ($return > 0) {
+                                    $user = UserModel::m()->getByUid($return);
                                     if (!empty($avatar)) {
                                         Roc::qiniu()->fetch($avatar, 'avatar/'.$return);
                                     }
 
-                                    self::setLoginInfo($return, $username, 1);
+                                    self::setLoginInfo($user['uid'], $user['username'], $user['groupid'], $user['salt']);
 
                                     die(parent::renderJson(10000));
                                 } else {
@@ -280,7 +279,7 @@ class UserController extends BaseController
                                     if ($return['password'] == md5($password)) {
                                         if ($return['weibo_openid'] == 0) {
                                             UserModel::m()->updateInfo(['weibo_openid'=>$userInfo['id']], $return['uid']);
-                                            self::setLoginInfo($return['uid'], $return['username'], $return['groupid']);
+                                            self::setLoginInfo($return['uid'], $return['username'], $return['groupid'], $return['salt']);
 
                                             die(parent::renderJson(10000));
                                         } else {
@@ -308,6 +307,110 @@ class UserController extends BaseController
 
                 break;
 
+            // 微信扫码登录回调
+            case 'weixin':
+                // 执行注册
+                if (Roc::request()->method == 'POST') {
+                    $userinfo = Roc::request()->cookies->wx_userinfo;
+                    if (empty($userinfo)) {
+                        // 超过10分钟，授权超时
+                        die(parent::renderJson(10413));
+                    }
+                    $userinfo = json_decode($userinfo);
+                    $avatar = $userinfo->headimgurl.'.png';
+
+                    $data = Roc::request()->data;
+                    $email = Roc::filter()->in($data->email);
+                    $username = Roc::filter()->in($data->username);
+                    $password = Roc::filter()->in($data->password);
+                    $newAccount = ($data->newAccount == 1 ? true : false);
+
+                    if ($newAccount) {
+                        self::_checkInput($email, $username, $password);
+
+                        $return = UserModel::m()->addUser([
+                            'username' => $username,
+                            'email' => $email,
+                            'password' => $password,
+                            'wx_openid' => $userinfo->openid,
+                            'wx_unionid' => $userinfo->unionid,
+                        ]);
+
+                        if ($return > 0) {
+                            $user = UserModel::m()->getByUid($return);
+                            if (!empty($avatar)) {
+                                Roc::qiniu()->fetch($avatar, 'avatar/'.$return);
+                            }
+
+                            self::setLoginInfo($user['uid'], $user['username'], $user['groupid'], $user['salt']);
+
+                            die(parent::renderJson(10000));
+                        } else {
+                            if ($return == -1) {
+                                die(parent::renderJson(10404));
+                            }
+                            if ($return == -2) {
+                                die(parent::renderJson(10405));
+                            }
+
+                            die(parent::renderJson(10001));
+                        }
+                    } else {
+                        if (!UserModel::m()->checkEmailValidity($email)) {
+                            $return = UserModel::m()->getByUsername($username);
+                        } else {
+                            $return = UserModel::m()->getByEmail($email);
+                        }
+
+                        if (!empty($return)) {
+                            if ($return['password'] == md5($password)) {
+                                if ($return['wx_unionid'] == '') {
+                                    UserModel::m()->updateInfo(['wx_openid' => $userinfo->openid, 'wx_unionid' => $userinfo->unionid], $return['uid']);
+                                    self::setLoginInfo($return['uid'], $return['username'], $return['groupid'], $return['salt']);
+
+                                    die(parent::renderJson(10000));
+                                } else {
+                                    die(parent::renderJson(10412));
+                                }
+                            } else {
+                                die(parent::renderJson(10407));
+                            }
+                        } else {
+                            die(parent::renderJson(10406));
+                        }
+                    }
+                } else {
+                    $url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=".Roc::get('wx.appId')."&secret=".Roc::get('wx.appSecret')."&code=".Roc::request()->query->code."&grant_type=authorization_code";
+                    $result = static::httpGet($url);
+                    $resToken= json_decode($result);
+
+                    // 通过access_token获取用户信息
+                    $url2 = "https://api.weixin.qq.com/sns/userinfo?access_token=".$resToken->access_token."&openid=".$resToken->openid."&lang=zh_CN";
+                    $result2 = static::httpGet($url2);
+                    $userinfo = json_decode($result2);
+
+                    $return = UserModel::m()->getByUnionID($userinfo->unionid);
+                    if (!empty($return)) {
+                        self::setLoginInfo($return['uid'], $return['username'], $return['groupid'], $return['salt']);
+
+                        Roc::app()->redirect('/login');
+                    } else {
+
+                        // 暂存10分钟
+                        setcookie('wx_userinfo', json_encode($userinfo), time() + 600, '/', null, Roc::request()->secure, true);
+
+                        $avatar = $userinfo->headimgurl.'.png';
+                        $username = $userinfo->nickname;
+
+                        self::renderBase(['page_title' => '微信登录', 'active' => 'weixin-join']);
+                        Roc::render('o_join', [
+                            'avatar' => $avatar,
+                            'username' => $username
+                        ]);
+                    }
+                }
+                break;
+
             default:
                 if (Roc::request()->method == 'POST') {
                     if (!Roc::get('system.register.switch')) {
@@ -329,13 +432,12 @@ class UserController extends BaseController
                                 'username' => $username,
                                 'email' => $email,
                                 'password' => $password,
-                                'reg_time' => time(),
-                                'last_time' => time(),
                             ]);
 
                             if ($return > 0) {
+                                $user = UserModel::m()->getByUid($return);
                                 Roc::qiniu()->fetch('https://dn-roc.qbox.me/avatar/0-avatar.png', 'avatar/'.$return);
-                                self::setLoginInfo($return, $username, 1);
+                                self::setLoginInfo($user['uid'], $user['username'], $user['groupid'], $user['salt']);
 
                                 die(parent::renderJson(10000));
                             } else {
@@ -424,7 +526,7 @@ class UserController extends BaseController
      * 获取加密身份信息
      * @return [type] [description]
      */
-    public static function getloginInfo()
+    public static function getLoginInfo()
     {
         $cookie = Roc::request()->cookies;
 
@@ -440,18 +542,28 @@ class UserController extends BaseController
         ];
 
         if (isset($cookie['roc_login'], $cookie['roc_secure'])) {
-            $userArr = json_decode(Roc::secret()->decrypt($cookie['roc_secure'], Roc::get('sys.config')['rockey']), true);
+            $sid = $cookie['roc_secure'];
 
-            if (count($userArr) == 4 && (time() -$userArr[3]) < 604800) {
-                if ($cookie['roc_login'] == $userArr[1]) {
-                    $userInfo['uid'] = $userArr[0];
-                    $userInfo['username'] = $userArr[1];
-                    $userInfo['groupid'] = $userArr[2];
-                    $userInfo['logintime'] = $userArr[3];
-                    $userInfo['avatar'] = self::getAvatar($userArr[0]);
-                    $userInfo['groupname'] = self::getGroupName($userArr[2]);
-                    $userInfo['notice_num'] = NotificationModel::m()->getUnreadTotal($userArr[0]);
-                    $userInfo['whisper_num'] = WhisperModel::m()->getUnreadTotal($userArr[0]);
+            $loginInfo = UserModel::m()->redis()->get('loginInfo:'.$sid);
+            if (!empty($loginInfo)) {
+                $userArr = json_decode($loginInfo, true);
+                if (is_array($userArr) && count($userArr) == 5 && (time() -$userArr[3]) < self::$expire) {
+                    if ($cookie['roc_login'] == $userArr[1]) {
+                        $loginSalt = UserModel::m()->redis()->get('loginSalt:'.$userArr[0]);
+                        if (!empty($loginSalt) && $loginSalt == Roc::get('sys.config')['rockey'].$userArr[4]) {
+                            $userInfo['uid'] = $userArr[0];
+                            $userInfo['username'] = $userArr[1];
+                            $userInfo['groupid'] = $userArr[2];
+                            $userInfo['logintime'] = $userArr[3];
+                            $userInfo['avatar'] = self::getAvatar($userArr[0]);
+                            $userInfo['groupname'] = self::getGroupName($userArr[2]);
+                            $userInfo['notice_num'] = NotificationModel::m()->getUnreadTotal($userArr[0]);
+                            $userInfo['whisper_num'] = 0;
+                        } else {
+                            UserModel::m()->redis()->del('loginInfo:'.$sid);
+                            UserModel::m()->redis()->del('loginSalt:'.$userArr[0]);
+                        }
+                    }
                 }
             }
         }
@@ -461,19 +573,31 @@ class UserController extends BaseController
 
     /**
      * 注册加密身份信息
-     * @param [type] $uid      [description]
-     * @param [type] $username [description]
-     * @param [type] $groupid  [description]
+     * @method setLoginInfo
+     * @param  [type]       $uid      [description]
+     * @param  [type]       $username [description]
+     * @param  [type]       $groupid  [description]
+     * @param  [type]       $salt     [description]
      */
-    public static function setLoginInfo($uid, $username, $groupid)
+    public static function setLoginInfo($uid, $username, $groupid, $salt)
     {
         UserModel::m()->updateLastTime($uid);
 
-        $loginTime = time();
-        setcookie('roc_login', $username, $loginTime + 604800, '/', NULL, Roc::request()->secure, true);
+        $sid = parent::getGuid($uid.parent::randomString());
+        // 重复检测，以确保唯一（虽然几乎不可能出现重复）
+        if (!empty(UserModel::m()->redis()->get('loginInfo:'.$sid))) {
+            self::setLoginInfo($uid, $username, $groupid, $salt);
+            exit;
+        }
 
-        $loginEncode = Roc::secret()->encrypt(json_encode([$uid, $username, $groupid, $loginTime]), Roc::get('sys.config')['rockey']);
-        setcookie('roc_secure', $loginEncode, $loginTime + 604800, '/', NULL, Roc::request()->secure, true);
+        $loginTime = time();
+        $expire = self::$expire;
+
+        UserModel::m()->redis()->setex('loginInfo:'.$sid, $expire, json_encode([$uid, $username, $groupid, $loginTime, md5($salt)]));
+        UserModel::m()->redis()->setex('loginSalt:'.$uid, $expire, Roc::get('sys.config')['rockey'].md5($salt));
+
+        setcookie('roc_login', $username, $loginTime + $expire, '/', null, Roc::request()->secure, true);
+        setcookie('roc_secure', $sid, $loginTime + $expire, '/', null, Roc::request()->secure, true);
     }
 
     /**
@@ -611,7 +735,6 @@ class UserController extends BaseController
         $uid = self::getloginInfo()['uid'];
 
         if ($uid > 0 && in_array($type, ['unread', 'notice', 'whisper'])) {
-
             switch ($type) {
                 case 'unread':
                     $rows = self::__getAllUnread($uid);
@@ -683,7 +806,7 @@ class UserController extends BaseController
             $user['avatar'] = self::getAvatar($user['uid']);
 
             $data = self::__getWhisperDialog($user['uid'], $me['uid'], 1);
-            parent::renderBase(['active' => 'user', 'pageTitle' => '与'.$user['username'].'的私信']);
+            parent::renderBase(['asset' => 'chat', 'active' => 'user', 'pageTitle' => '与'.$user['username'].'的私信']);
             Roc::render('chat', [
                 'data' => $data,
                 'user' => $user,
@@ -740,7 +863,7 @@ class UserController extends BaseController
 
         if ($uid > 0) {
             $user = UserModel::m()->getByUid($uid);
-            if (!empty($user)){
+            if (!empty($user)) {
                 if (UserModel::m()->checkEmailValidity($data->email)) {
                     $cEmail = UserModel::m()->getByEmail($data->email);
 
@@ -908,7 +1031,7 @@ class UserController extends BaseController
     {
         $verifyResult = Roc::alipay()->verifyReturn();
 
-        if($verifyResult) {
+        if ($verifyResult) {
             $outTradeNo = $_GET['out_trade_no'];
             $tradeNo = $_GET['trade_no'];
             $tradeStatus = $_GET['trade_status'];
@@ -937,7 +1060,7 @@ class UserController extends BaseController
     {
         $verifyResult = Roc::alipay()->verifyNotify();
 
-        if($verifyResult) {
+        if ($verifyResult) {
             $outTradeNo = $_POST['out_trade_no'];
             $tradeNo = $_POST['trade_no'];
             $tradeStatus = $_POST['trade_status'];
@@ -1206,7 +1329,7 @@ class UserController extends BaseController
     {
         $articles = ArticleModel::m()->getList(self::$per*($page - 1), self::$per, $uid);
 
-        foreach ($articles as &$article)  {
+        foreach ($articles as &$article) {
             $article['title'] = Roc::filter()->topicOut($article['title'], true);
             $article['content'] = Roc::controller('frontend\Index')->cutSubstr(Roc::filter()->topicOut($article['content']), 128);
             $article['post_time'] = parent::formatTime($article['post_time']);
@@ -1245,7 +1368,7 @@ class UserController extends BaseController
 
         $articles = ArticleModel::m()->getCollectionList(self::$per*($page - 1), self::$per, $uid);
 
-        foreach ($articles as &$article)  {
+        foreach ($articles as &$article) {
             $article['type'] = 'article';
             $article['title'] = Roc::filter()->topicOut($article['title'], true);
             $article['content'] = Roc::controller('frontend\Index')->cutSubstr(Roc::filter()->topicOut($article['content']), 128);
@@ -1255,7 +1378,7 @@ class UserController extends BaseController
 
         $data = array_merge($topics, $articles);
 
-        usort($data, function($a, $b) {
+        usort($data, function ($a, $b) {
             if ($a['collection_id'] > $b['collection_id']) {
                 return -1;
             } else {
@@ -1321,7 +1444,7 @@ class UserController extends BaseController
             ]);
         }
 
-        usort($rows, function($a, $b) {
+        usort($rows, function ($a, $b) {
             if ($a['unix_time'] >= $b['unix_time']) {
                 return -1;
             } else {
@@ -1386,7 +1509,7 @@ class UserController extends BaseController
             ];
         }
 
-        usort($data['rows'], function($a, $b) {
+        usort($data['rows'], function ($a, $b) {
             if ($a['id'] > $b['id']) {
                 return 1;
             }

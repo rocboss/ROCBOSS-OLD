@@ -51,14 +51,12 @@
             </div>
         </div>
     </section>
-    {$footerLayout}
     <script type="text/javascript">
-        seajs.use("js/user", function(user) {
-            user.chat({
-                data: {:json_encode($data)}
-            });
-        });
+        var config = {
+            data: {:json_encode($data)}
+        };
     </script>
+    {$footerLayout}
   </div>
 </div>
 </body>

@@ -50,7 +50,7 @@
                         {loop $users $user}
                         <div class="row">
                             <div class="col-sm-3">
-                                <img class="avatar" src="{$user.avatar}"/>
+                                <img class="avatar" src="{$user.avatar}" onerror="javascript:this.src='https://dn-roc.qbox.me/avatar/0-avatar.png';"/>
                                 <span style="font-weight: bold; color: #f8ac59">{$user.group_name}</span>
                                 <a href="/user/{$user.uid}" target="_blank" data-placement="top" title="{$user.score} 积分">{$user.username}</a>
                             </div>
@@ -170,9 +170,9 @@
                     href += '?uid={:intval(Roc::request()->query->uid)}';
                 {/if}
             {/if}
-            laypage.dir = '/app/views/css/laypage.css';
+            laypage.dir = '/dist/css/laypage.css';
             laypage({
-                dir: '/app/views/css/laypage.css',
+                dir: '/dist/css/laypage.css',
                 cont: 'pagination',
                 pages: pages,
                 curr: page,

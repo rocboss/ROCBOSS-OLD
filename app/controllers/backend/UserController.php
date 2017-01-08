@@ -1,10 +1,10 @@
 <?php
 namespace backend;
 
-use \Controller;
-use \Roc;
-use \UserModel;
-use \ScoreModel;
+use Roc;
+use UserModel;
+use ScoreModel;
+
 class UserController extends BaseController
 {
     /**

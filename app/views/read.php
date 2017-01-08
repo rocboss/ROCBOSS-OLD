@@ -17,6 +17,7 @@
                 <div class="nav topic-d-title">
                     <h4>
                         {if $data['is_top'] > 0}<span class="label label-success margin-r-5">置顶</span>{/if}
+                        {if $data['is_essence'] > 0}<span class="label label-warning margin-r-5">精华</span>{/if}
                         {$data.title}
                     </h4>
                 </div>
@@ -80,6 +81,9 @@
                                         <a class="btn btn-sm top-topic"><i class="fa fa-level-up"></i> 置顶</a>
                                     </li>
                                     <li>
+                                        <a class="btn btn-sm essence-topic"><i class="fa fa-thumb-tack"></i> 精华</a>
+                                    </li>
+                                    <li>
                                         <a class="btn btn-sm lock-topic"><i class="fa fa-lock"></i> 锁帖</a>
                                     </li>
                                     {/if}
@@ -134,7 +138,7 @@
                                   </li>
                                   <li id="reply-{$reply.pid}">
                                     <a href="/user/{$reply.uid}" class="pull-left reply-user">
-                                        <img alt="image" class="reply-avatar u-avatar" src="{$reply.avatar}">
+                                        <img alt="image" class="reply-avatar u-avatar" src="{$reply.avatar}" onerror="javascript:this.src='https://dn-roc.qbox.me/avatar/0-avatar.png';">
                                     </a>
                                     <div class="timeline-item direct-chat-text">
                                       <h3 class="timeline-header">
@@ -338,15 +342,12 @@
         </div>
       </div>
     </section>
-
-    {$footerLayout}
     <script type="text/javascript">
-        seajs.use("js/read", function(read) {
-            read.init({
-                tid: {$data.tid}
-            });
-        });
+        var config = {
+            tid: {$data.tid}
+        };
     </script>
+    {$footerLayout}
   </div>
 </div>
 

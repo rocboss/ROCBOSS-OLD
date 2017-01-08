@@ -42,8 +42,7 @@ class Request
 
     public function __construct($config = [])
     {
-        if (empty($config))
-        {
+        if (empty($config)) {
             $config = [
                 'url' => self::getVar('REQUEST_URI', '/'),
                 'base' => str_replace(['\\', ' '], ['/', '%20'], dirname(self::getVar('SCRIPT_NAME'))),
@@ -70,35 +69,27 @@ class Request
 
     public function init($properties = [])
     {
-        foreach ($properties as $name => $value)
-        {
+        foreach ($properties as $name => $value) {
             $this->$name = $value;
         }
 
-        if ($this->base != '/' && strlen($this->base) > 0 && strpos($this->url, $this->base) === 0)
-        {
+        if ($this->base != '/' && strlen($this->base) > 0 && strpos($this->url, $this->base) === 0) {
             $this->url = substr($this->url, strlen($this->base));
         }
 
-        if (empty($this->url))
-        {
+        if (empty($this->url)) {
             $this->url = '/';
-        }
-        else
-        {
+        } else {
             $_GET += self::parseQuery($this->url);
 
             $this->query->setData($_GET);
         }
 
-        if (strpos($this->type, 'application/json') === 0)
-        {
+        if (strpos($this->type, 'application/json') === 0) {
             $body = $this->getBody();
-            if ($body != '')
-            {
+            if ($body != '') {
                 $data = json_decode($body, true);
-                if ($data != null)
-                {
+                if ($data != null) {
                     $this->data->setData($data);
                 }
             }
@@ -109,15 +100,13 @@ class Request
     {
         static $body;
 
-        if (!is_null($body))
-        {
+        if (!is_null($body)) {
             return $body;
         }
 
         $method = self::getMethod();
 
-        if ($method == 'POST' || $method == 'PUT' || $method == 'PATCH')
-        {
+        if ($method == 'POST' || $method == 'PUT' || $method == 'PATCH') {
             $body = file_get_contents('php://input');
         }
 
@@ -128,12 +117,9 @@ class Request
     {
         $method = self::getVar('REQUEST_METHOD', 'GET');
 
-        if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']))
-        {
+        if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
             $method = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
-        }
-        elseif (isset($_REQUEST['_method']))
-        {
+        } elseif (isset($_REQUEST['_method'])) {
             $method = $_REQUEST['_method'];
         }
 
@@ -146,13 +132,10 @@ class Request
 
         $flags = \FILTER_FLAG_NO_PRIV_RANGE | \FILTER_FLAG_NO_RES_RANGE;
 
-        foreach ($forwarded as $key)
-        {
-            if (array_key_exists($key, $_SERVER))
-            {
+        foreach ($forwarded as $key) {
+            if (array_key_exists($key, $_SERVER)) {
                 sscanf($_SERVER[$key], '%[^,]', $ip);
-                if (filter_var($ip, \FILTER_VALIDATE_IP, $flags) !== false)
-                {
+                if (filter_var($ip, \FILTER_VALIDATE_IP, $flags) !== false) {
                     return $ip;
                 }
             }
@@ -171,8 +154,7 @@ class Request
         $params = [];
 
         $args = parse_url($url);
-        if (isset($args['query']))
-        {
+        if (isset($args['query'])) {
             parse_str($args['query'], $params);
         }
 

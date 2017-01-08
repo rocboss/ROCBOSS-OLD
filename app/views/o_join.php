@@ -79,9 +79,7 @@
     </div>
    </section>
 </div>
-{$footerLayout}
 <script type="text/javascript">
-    seajs.use("js/login", function(login) {
-        login.o_join('{:Roc::request()->url}');
-    });
+    var url = '{:Roc::request()->url}';
 </script>
+{$footerLayout}

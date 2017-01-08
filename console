@@ -1,0 +1,37 @@
+#!/usr/bin/env php
+<?php
+    // System Bootstrap File.
+    require 'system/Roc.php';
+
+    Roc::set(
+        // System infrastructure configuration
+        require 'app/config/_base.php'
+    );
+    Roc::set(
+        // Database configuration
+        require 'app/config/_database.php'
+    );
+    Roc::set(
+        // Miscellaneous configuration
+        require 'app/config/_others.php'
+    );
+
+    // Automatically load path
+    Roc::path(Roc::get('system.controller.path'));
+    Roc::path(Roc::get('system.model.path'));
+    Roc::path(Roc::get('system.libs.path'));
+    Roc::path('app/command');
+
+    // Initialization
+    Roc::before('start', ['Bootstrap', 'init']);
+
+    // 404
+    Roc::map('notFound', function() {
+        echo "The Command is Not Found.\n";
+        exit;
+    });
+
+    $_SERVER["REQUEST_URI"] = !empty($argv[1]) ? '/command/'.$argv[1] : '';
+
+    Roc::start();
+?>

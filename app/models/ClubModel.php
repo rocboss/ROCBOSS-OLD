@@ -8,11 +8,11 @@ class ClubModel extends Model
     public function getList()
     {
         return $this->_db->from($this->_table)
-                    ->where(['valid'=>1])
-                    ->sortDESC('sort')
-                    ->sortASC('cid')
-                    ->select(['cid', 'sort', 'club_name'])
-                    ->many(__CLASS__.':clubs', 86400*30);
+                        ->where(['valid'=>1])
+                        ->sortDESC('sort')
+                        ->sortASC('cid')
+                        ->select(['cid', 'sort', 'club_name'])
+                        ->many(__CLASS__.':clubs', 86400*30);
     }
 
     // 更新分类

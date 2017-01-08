@@ -38,10 +38,5 @@
     </div>
   </section>
     {$footerLayout}
-    <script type="text/javascript">
-        seajs.use("js/topic", function(topic) {
-            topic.init();
-        });
-    </script>
 </body>
 </html>

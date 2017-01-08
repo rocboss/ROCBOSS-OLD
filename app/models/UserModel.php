@@ -62,6 +62,14 @@ class UserModel extends Model
                 ->one();
     }
 
+    // 根据unionid获取用户信息
+    public function getByUnionID($unionId)
+    {
+        return $this->_db->from($this->_table)
+                ->where(['wx_unionid' => $unionId, 'wx_unionid <>' => ''])
+                ->one();
+    }
+
     // 获取用户列表
     public function getMany($offset, $limit, $condition = ['valid' => 1], $sort = ['sortASC', 'uid'])
     {
@@ -79,11 +87,19 @@ class UserModel extends Model
         if (isset($data['password'])) {
             $data['password'] = $this->_buildPassword($data['password']);
         }
+        if (!isset($data['salt'])) {
+            $data['salt'] = $this->buildSalt();
+        }
+        if (!isset($data['reg_time'])) {
+            $data['reg_time'] = time();
+        }
+        $data['last_time'] = time();
 
         $result = $this->checkPassConflict($data['email'], $data['username']);
 
         if ($result === 0) {
             $this->_db->from($this->_table)->insert($data)->execute();
+
             return $this->_db->insert_id;
         } else {
             return $result;
@@ -146,7 +162,7 @@ class UserModel extends Model
         if (mb_strlen($nickname, 'utf-8') > 12) {
             return '用户名太长了';
         }
-        if (preg_match('/\s/', $nickname) || strpos($nickname,' ')) {
+        if (preg_match('/\s/', $nickname) || strpos($nickname, ' ')) {
             return '用户名不允许存在空格';
         }
         if (is_numeric(substr($nickname, 0, 1)) || substr($nickname, 0, 1) == "_") {
@@ -202,5 +218,21 @@ class UserModel extends Model
     private function _buildPassword($password)
     {
         return md5($password);
+    }
+
+    /**
+     * 构建盐值
+     * @method buildSalt
+     * @param  integer        $length [description]
+     * @return [type]                 [description]
+     */
+    private function buildSalt($length = 8)
+    {
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_ []{}<>~`+=,.;:/?|';
+        $string = '';
+        for ($i = 0; $i < $length; $i++) {
+            $string .= substr($chars, mt_rand(0, strlen($chars) - 1), 1);
+        }
+        return $string;
     }
 }

@@ -38,14 +38,12 @@
         </div>
     </div>
   </section>
-    {$footerLayout}
-    <script type="text/javascript">
-        seajs.use("js/topic", function(topic) {
-            topic.edit({
-                cid: {$topic.cid},
-                txt: '{:str_replace("\n", "", $topic['content'])}'
-            });
-        });
-    </script>
+  <script type="text/javascript">
+      var config = {
+          cid: {$topic.cid},
+          txt: '{:str_replace("\n", "", $topic['content'])}'
+      };
+  </script>
+  {$footerLayout}
 </body>
 </html>

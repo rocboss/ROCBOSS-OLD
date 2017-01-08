@@ -3,12 +3,14 @@
     <!-- 因首屏异步渲染，单独针对爬虫给出链接 -->
     <div class="hide for-seo">
       {loop $data['rows'] $row}
-          <a href="/read/{$row.tid}">
-            <h5>{$row.title}</h5>
+        <div>
+          <a href="/read/{$row.tid}" title="{$row.title}">
+            <span>{$row.title}</span>
           </a>
+        </div>
       {/loop}
       <?php
-          $url = $data['sort'] == 0 ? '/:page': '/'.$data['sort'].'/:page';
+          $url = $data['cid'] == 0 ? '/page-:page.html': '/category-'.$data['cid'].'-:page.html';
           $allPage = ceil($data['total']/$data['per']);
           for ($p = 1; $p <= $allPage; $p++):
       ?>
@@ -28,8 +30,9 @@
         <div class="col-md-8">
           <div class="nav-tabs-custom">
             <ul class="nav nav-tabs">
-              <li v-bind:class="{'active' : sort == 'tid'}"><a href="#" v-on:click="changeSort($event, 'tid')">最新发表</a></li>
+              <li v-bind:class="{'active' : sort == 'post_time'}"><a href="#" v-on:click="changeSort($event, 'post_time')">最新发表</a></li>
               <li v-bind:class="{'active' : sort == 'last_time'}"><a href="#" v-on:click="changeSort($event, 'last_time')">最后回复</a></li>
+              <li v-bind:class="{'active' : sort == 'comment_num'}"><a href="#" v-on:click="changeSort($event, 'comment_num')">最多回复</a></li>
               <li v-bind:class="{'active' : sort == 'essence'}"><a href="#" v-on:click="changeSort($event, 'essence')">只看精华</a></li>
               <span id="requesting" class="pull-right">
                 <i class="fa fa-spinner fa-spin"></i> 加载中
@@ -41,21 +44,29 @@
                 <template v-for="topic in topics">
                     <div class="post">
                       <div class="user-block">
-                        <a href="/user/{{ topic.uid }}"><img class="img-circle img-bordered-sm topic-avatar" src="/app/views/img/loading.gif" data-original="{{ topic.avatar }}" alt="{{ topic.username }}"></a>
-                            <span class="username">
-                              <a href="/user/{{ topic.uid }}">{{ topic.username }}</a>
-                              <a href="/read/{{ topic.tid }}" class="pull-right btn-box-tool"><i class="fa fa-comments-o margin-r-5"></i> 评论 ({{ topic.comment_num }})</a>
-                            </span>
-                            <span class="description">
-                                <template v-if="topic.location != ''">
-                                    <i class="fa fa-map-marker margin-r-5"></i> {{ topic.location }} -
-                                </template>
-                                {{ topic.post_time }}
-                            </span>
+                        <a href="/user/{{ topic.uid }}" class="user-link">
+                            <img class="topic-avatar" src="/dist/img/loading.gif" data-original="{{ topic.avatar }}" alt="{{ topic.username }}">
+                            <span class="comment_num" v-if="topic.comment_num > 0">{{ topic.comment_num }}</span>
+                        </a>
+                        <span class="username">
+                          <a href="/user/{{ topic.uid }}">{{ topic.username }}</a>
+                          <div class="topic-status">
+                            <div class="c-ico">
+                                <i class="fa fa-thumbs-up"></i>
+                            </div>
+                            <div class="c-num">{{ topic.praise_num }}</div>
+                          </div>
+                        </span>
+                        <span class="description">
+                            <a href="/read/{{ topic.tid }}" class="post-title">
+                              <h5>
+                                  <span class="label label-success margin-r-5" v-show="topic.is_top > 0">置顶</span>
+                                  <span class="label label-warning margin-r-5" v-show="topic.is_essence > 0">精华</span>
+                                  {{ topic.title }}
+                              </h5>
+                            </a>
+                        </span>
                       </div>
-                      <a href="/read/{{ topic.tid }}" class="post-title">
-                        <h5><span class="label label-success margin-r-5" v-show="topic.is_top > 0">置顶</span> {{ topic.title }}</h5>
-                      </a>
                     </div>
                 </template>
                 <div id="pagination" class="pagination"></div>
@@ -67,18 +78,15 @@
         <div class="col-md-4">
             <!-- 发帖入口 -->
             <div class="box box-success">
-              <div class="box-header with-border">
-                <h3 class="box-title"><i class="fa fa-pencil margin-r-5"></i> 互动</h3>
-              </div>
               <div class="box-body">
-                  <ul class="list-group list-group-unbordered">
+                  <ul class="list-group list-group-unbordered index-option">
                       <li class="list-group-item" style="border: none;">
-                          <a href="/newTopic" class="btn btn-danger btn-block">
+                          <a href="/newTopic" class="btn">
                               <i class="fa fa-comments margin-r-5"></i> 发布主题
                           </a>
                       </li>
                       <li class="list-group-item" style="border-bottom: none;">
-                          <a href="/newArticle" class="btn bg-olive btn-block">
+                          <a href="/newArticle" class="btn">
                               <i class="fa fa-file margin-r-5"></i> 文章投稿
                           </a>
                       </li>
@@ -90,7 +98,7 @@
                 <div class="box-body">
                     <a class="btn btn-block btn-gray{if ($active == 'index-0')} active{/if}" href="/">全部</a>
                     {loop $clubs $club}
-                      <a class="btn btn-block btn-gray{if ($active == 'index-'.$club['cid'])} active{/if}" href="/{$club.cid}/1">{$club.club_name}</a>
+                      <a class="btn btn-block btn-gray{if ($active == 'index-'.$club['cid'])} active{/if}" href="/category-{$club.cid}-1.html">{$club.club_name}</a>
                     {/loop}
                 </div>
             </div>
@@ -153,21 +161,17 @@
         </div>
       </div>
     </section>
-    {$footerLayout}
     <script type="text/javascript">
-        var roc;
-        // 加载入口模块
-        seajs.use("js/index", function(index) {
-            index.init({
-                sort: '{$data.sort}',
-                topics: {:json_encode($data['rows'])},
-                page: {$data.page},
-                cid: {$data.cid},
-                per: {$data.per},
-                total: {$data.total}
-            });
-        });
+        var obj = {
+            sort: '{$data.sort}',
+            topics: {:json_encode($data['rows'])},
+            page: {$data.page},
+            cid: {$data.cid},
+            per: {$data.per},
+            total: {$data.total}
+        };
     </script>
+    {$footerLayout}
   </div>
 </div>
 

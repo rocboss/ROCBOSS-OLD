@@ -32,14 +32,12 @@
             </div>
         </div>
     </section>
-    {$footerLayout}
     <script type="text/javascript">
-        seajs.use("js/user", function(user) {
-            user.scores({
-                scores: {:json_encode($data)}
-            });
-        });
+        var config = {
+            scores: {:json_encode($data)}
+        };
     </script>
+    {$footerLayout}
   </div>
 </div>
 </body>

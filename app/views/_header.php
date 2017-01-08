@@ -4,22 +4,27 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>{if (!empty($pageTitle))}{$pageTitle} - {/if}{$seo.sitename}</title>
-  <meta name="keywords" content="{$seo.keywords}">
-  <meta name="description" content="{$seo.description}">
+  <meta name="keywords" content="{if (!empty($keywords))}{$keywords}{else}{$seo.keywords}{/if}">
+  <meta name="description" content="{if (!empty($description))}{$description}{else}{$seo.description}{/if}">
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="author" content="ROC <i@rocs.me>" />
   <meta name="_csrf" content="{:md5(Roc::request()->cookies->roc_secure)}">
-  <link rel="icon" href="{:'/'.Roc::get('system.views.path').'/'}img/favicon.ico" mce_href="{:'/'.Roc::get('system.views.path').'/'}img/favicon.ico" type="image/x-icon">
+  <meta name="google-site-verification" content="8fNfY32dXDtsbgiPjp2qYhEXT9I0ADhB68VUi5G8Ync" />
+  <link rel="icon" href="/dist/img/favicon.ico" mce_href="/dist/img/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
   <link rel="stylesheet" href="https://cdn.bootcss.com/ionicons/2.0.1/css/ionicons.min.css">
-  <link rel="stylesheet" href="{:'/'.Roc::get('system.views.path').'/'}vendor/iconfont/iconfont.css">
-  <link rel="stylesheet" href="{:'/'.Roc::get('system.views.path').'/'}vendor/bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" href="{:'/'.Roc::get('system.views.path').'/'}css/jquery.fancybox.css?v=2.1.5">
-  <link rel="stylesheet" href="{:'/'.Roc::get('system.views.path').'/'}css/wangEditor.css?v=1.3.12">
-  <link rel="stylesheet" href="{:'/'.Roc::get('system.views.path').'/'}css/github-gist.css">
-  <link rel="stylesheet" href="{:'/'.Roc::get('system.views.path').'/'}css/animate.css">
-  <link rel="stylesheet" href="{:'/'.Roc::get('system.views.path').'/'}css/base_{$theme}.css?v=2.2.1.35">
+  {if Roc::get('system.webpack_debug')}
+  <link rel="stylesheet" href="/vendor/iconfont/iconfont.css">
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/src/css/jquery.fancybox.css?v=2.1.5">
+  <link rel="stylesheet" href="/src/css/wangEditor.css?v=1.3.12">
+  <link rel="stylesheet" href="/src/css/github-gist.css">
+  <link rel="stylesheet" href="/src/css/animate.css">
+  {else}
+  <link rel="stylesheet" href="/dist/css/{$asset}.min.css">
+  {/if}
+  <link rel="stylesheet" href="/src/css/base_{$theme}.css?v=2210057">
+
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
   <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>

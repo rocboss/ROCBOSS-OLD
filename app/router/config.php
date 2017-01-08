@@ -1,12 +1,16 @@
 <?php
-/**
- * 路由映射表
- */
+// 路由映射表
 return [
     // 切换明暗主题
     ['POST /turn/light', 'frontend\Index:turnLight'],
 
-    ['GET /((@cid:[0-9]+/)@page:[0-9]+)', 'frontend\Index:index'],
+    ['GET /(topic)', 'frontend\Index:index'],
+
+    ['GET /page-((@cid:[0-9]+-)@page:[0-9]+).html', 'frontend\Index:index'],
+
+    ['GET /category-(@cid:[0-9]+)-(@page:[0-9]+).html', 'frontend\Index:index'],
+
+    ['GET /(@cid:[0-9]+/)@page:[0-9]+', 'frontend\Index:indexRedirect'],
 
     ['GET /search', 'frontend\Index:search'],
 
@@ -64,7 +68,7 @@ return [
 
     ['GET|POST /login(/@type:qq|weibo)', 'frontend\User:login'],
 
-    ['GET|POST /register(/@type:qq|weibo)', 'frontend\User:register'],
+    ['GET|POST /register(/@type:qq|weibo|weixin)', 'frontend\User:register'],
 
     ['POST /add/topic', 'frontend\Post:addTopic'],
 
@@ -101,6 +105,8 @@ return [
     ['POST /change/club/@tid:[0-9]+', 'frontend\Post:changeClub'],
 
     ['POST /top/topic/@tid:[0-9]+', 'frontend\Post:topTopic'],
+
+    ['POST /essence/topic/@tid:[0-9]+', 'frontend\Post:essenceTopic'],
 
     ['POST /lock/topic/@tid:[0-9]+', 'frontend\Post:lockTopic'],
 

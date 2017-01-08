@@ -38,12 +38,9 @@ class Collection implements \ArrayAccess, \Iterator, \Countable
     
     public function offsetSet($offset, $value)
     {
-        if (is_null($offset))
-        {
+        if (is_null($offset)) {
             $this->data[] = $value;
-        }
-        else
-        {
+        } else {
             $this->data[$offset] = $value;
         }
     }
@@ -82,7 +79,7 @@ class Collection implements \ArrayAccess, \Iterator, \Countable
     {
         $key = key($this->data);
 
-        return ($key !== NULL && $key !== FALSE);
+        return ($key !== null && $key !== false);
     }
     
     public function count()

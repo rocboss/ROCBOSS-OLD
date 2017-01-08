@@ -54,16 +54,14 @@
         </div>
     </div>
   </section>
-    {$footerLayout}
-    <script type="text/javascript">
-        seajs.use("js/article", function(article) {
-            article.init({
-                rows: {:json_encode($data['rows'])},
-                page: {$data.page},
-                per: {$data.per},
-                total: {$data.total},
-            });
-        });
-    </script>
+  <script type="text/javascript">
+    var config = {
+        rows: {:json_encode($data['rows'])},
+        page: {$data.page},
+        per: {$data.per},
+        total: {$data.total},
+    };
+  </script>
+  {$footerLayout}
 </body>
 </html>

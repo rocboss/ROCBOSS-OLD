@@ -1,4 +1,5 @@
-@import url(common_black.css);
+@import url(common_black.css?v=46);
+em {color: #c30303; font-weight: bold; font-style: normal;}
 .layui-layer-dialog .layui-layer-content {color: #868686!important;}
 .content img {max-width: 100%;}
 .profile-info{margin:0}
@@ -59,3 +60,4 @@ dd,dt{margin-bottom:8px}
 .tab-content img {max-width: 100%;}
 .turn-light {width: 60px; height: 60px; text-align: center; position: fixed; right: 10px; bottom: 10px; border-radius: 50%; border: 1px solid #B8C7CE;}
 .turn-light i {font-size: 40px; line-height: 60px;}
+.reply-content a {background-color: transparent!important;}

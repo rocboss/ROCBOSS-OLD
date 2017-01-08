@@ -1,4 +1,5 @@
-.DS_Store
-/index.php
-/_config.php
+/node_modules/*
 /app/cache/*
+/app/config/_*
+_config.php
+npm-debug.log

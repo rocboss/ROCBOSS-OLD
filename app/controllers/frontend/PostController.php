@@ -1,18 +1,17 @@
 <?php
-
 namespace frontend;
 
-use \Controller;
-use \Roc;
-use \UserModel;
-use \ScoreModel;
-use \TopicModel;
-use \ReplyModel;
-use \ArticleModel;
-use \WhisperModel;
-use \WithdrawModel;
-use \AttachmentModel;
-use \NotificationModel;
+use Roc;
+use UserModel;
+use ScoreModel;
+use TopicModel;
+use ReplyModel;
+use ArticleModel;
+use WhisperModel;
+use WithdrawModel;
+use AttachmentModel;
+use NotificationModel;
+
 class PostController extends BaseController
 {
     /**
@@ -50,7 +49,7 @@ class PostController extends BaseController
                 ]);
 
                 if ($tid > 0) {
-                    if (!empty($content['atUidArray']))
+                    if (!empty($content['atUidArray'])) {
                         foreach (array_unique($content['atUidArray']) as $atUid) {
                             if ($atUid == $uid) {
                                 continue;
@@ -64,6 +63,7 @@ class PostController extends BaseController
                                 'is_read' => 0
                             ]);
                         }
+                    }
                     UserModel::m()->updateLastTime($uid);
 
                     parent::json('success', $tid);
@@ -139,8 +139,7 @@ class PostController extends BaseController
             if ($uid != $topic['uid'] && $user['groupid'] != 99) {
                 parent::json('error', '无权修改该主题');
             }
-            if ($topic['post_time'] < (time() - 3600) && $user['groupid'] != 99)
-            {
+            if ($topic['post_time'] < (time() - 3600) && $user['groupid'] != 99) {
                 parent::json('error', '已超过可修改时间范围');
             }
 
@@ -249,7 +248,7 @@ class PostController extends BaseController
                         ]);
                     }
 
-                    if (!empty($content['atUidArray']))
+                    if (!empty($content['atUidArray'])) {
                         foreach (array_unique($content['atUidArray']) as $atUid) {
                             if ($atUid == Roc::controller('frontend\User')->getloginInfo()['uid'] || (!empty($atReply) && $atReply['uid'] == $atUid) || $topic['uid'] == $atUid) {
                                 continue;
@@ -263,6 +262,7 @@ class PostController extends BaseController
                                 'is_read' => 0
                             ]);
                         }
+                    }
 
                     UserModel::m()->updateLastTime(Roc::controller('frontend\User')->getloginInfo()['uid']);
                     parent::json('success', '发布成功');
@@ -295,12 +295,12 @@ class PostController extends BaseController
         switch ($type) {
             case 'notice':
                 NotificationModel::m()->read($uid, Roc::request()->data->id);
-                parent::json('success',  Roc::request()->data->id);
+                parent::json('success', Roc::request()->data->id);
                 break;
 
             case 'whisper':
                 WhisperModel::m()->read($uid, Roc::request()->data->id);
-                parent::json('success',  Roc::request()->data->id);
+                parent::json('success', Roc::request()->data->id);
                 break;
 
             default:
@@ -332,7 +332,7 @@ class PostController extends BaseController
 
                     parent::json('success', '点赞成功');
                 } else {
-                     parent::json('error', '点赞失败，请重试');
+                    parent::json('error', '点赞失败，请重试');
                 }
             }
         } else {
@@ -363,7 +363,7 @@ class PostController extends BaseController
 
                     parent::json('success', '点赞成功');
                 } else {
-                     parent::json('error', '点赞失败，请重试');
+                    parent::json('error', '点赞失败，请重试');
                 }
             }
         } else {
@@ -391,7 +391,7 @@ class PostController extends BaseController
 
                     parent::json('success', '<i class="fa fa-star-o "></i> 收藏');
                 } else {
-                     parent::json('error', '取消收藏失败，请重试');
+                    parent::json('error', '取消收藏失败，请重试');
                 }
             } else {
                 $ret = TopicModel::m()->addCollection($tid, $uid);
@@ -401,7 +401,7 @@ class PostController extends BaseController
 
                     parent::json('success', '<i class="fa fa-star "></i> 已收藏');
                 } else {
-                     parent::json('error', '收藏失败，请重试');
+                    parent::json('error', '收藏失败，请重试');
                 }
             }
 
@@ -432,7 +432,7 @@ class PostController extends BaseController
 
                     parent::json('success', '<i class="fa fa-star-o "></i> 收藏');
                 } else {
-                     parent::json('error', '取消收藏失败，请重试');
+                    parent::json('error', '取消收藏失败，请重试');
                 }
             } else {
                 $ret = ArticleModel::m()->addCollection($aid, $uid);
@@ -442,7 +442,7 @@ class PostController extends BaseController
 
                     parent::json('success', '<i class="fa fa-star "></i> 已收藏');
                 } else {
-                     parent::json('error', '收藏失败，请重试');
+                    parent::json('error', '收藏失败，请重试');
                 }
             }
 
@@ -595,6 +595,37 @@ class PostController extends BaseController
     }
 
     /**
+     * 设置主题精华
+     * @method essenceTopic
+     * @param  [type]       $tid [description]
+     * @return [type]            [description]
+     */
+    public static function essenceTopic($tid)
+    {
+        parent::csrfCheck();
+
+        $uid = Roc::controller('frontend\User')->getloginInfo()['uid'];
+        $user = UserModel::m()->getByUid($uid);
+        $groupid = !empty($user) ? $user['groupid'] : 0;
+        if ($uid > 0) {
+            $topic = TopicModel::m()->getByTid($tid);
+            if (!empty($topic)) {
+                if ($groupid == 99) {
+                    TopicModel::m()->updateTopic($tid, ['is_essence' => 1 - $topic['is_essence']]);
+
+                    parent::json('success', (1 - $topic['is_essence'] > 0 ? '设置精华' : '取消精华').'成功');
+                } else {
+                    parent::json('error', '无权限操作');
+                }
+            } else {
+                parent::json('error', '主题不存在');
+            }
+        } else {
+            parent::json('error', '您尚未登录');
+        }
+    }
+
+    /**
      * 主题锁帖
      * @method lockTopic
      * @param  [type]    $tid [description]
@@ -641,13 +672,13 @@ class PostController extends BaseController
             $topic = TopicModel::m()->getByTid($tid);
             if (!empty($topic)) {
                 if ($groupid == 99) {
-                    TopicModel::m()->updateTopic($tid, ['valid' => 0]);
+                    TopicModel::m()->deleteTopic($tid);
                     UserModel::m()->updateLastTime($uid);
 
                     parent::json('success', '删除成功');
                 } else {
                     if ($topic['uid'] == $uid && $topic['post_time'] >= time() - 3600) {
-                        TopicModel::m()->updateTopic($tid, ['valid' => 0]);
+                        TopicModel::m()->deleteTopic($tid);
 
                         parent::json('success', '删除成功');
                     } else {

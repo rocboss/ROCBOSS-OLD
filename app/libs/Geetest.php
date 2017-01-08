@@ -29,19 +29,17 @@ class Geetest
     {
         $url = "http://api.geetest.com/register.php?gt=".$this->appId;
 
-        $this->challenge = md5($this->sendRequest($url).$this->appKey);
+        $this->challenge = $this->sendRequest($url);
 
-        if (strlen($this->challenge) != 32)
-        {
+        if (strlen($this->challenge) != 32) {
             return 0;
         }
         return 1;
     }
     public function validate($challenge, $validate, $seccode)
     {
-        if (!$this->checkValidate($challenge, $validate))
-        {
-            return FALSE;
+        if (!$this->checkValidate($challenge, $validate)) {
+            return false;
         }
 
         $data = [
@@ -53,36 +51,28 @@ class Geetest
 
         $codevalidate = $this->postRequest($url, $data);
 
-        if (strlen($codevalidate) > 0 && $codevalidate == md5($seccode))
-        {
-            return TRUE;
-        }
-        else if ($codevalidate == "false")
-        {
-            return FALSE;
-        }
-        else
-        {
+        if (strlen($codevalidate) > 0 && $codevalidate == md5($seccode)) {
+            return true;
+        } elseif ($codevalidate == "false") {
+            return false;
+        } else {
             return $codevalidate;
         }
     }
     private function checkValidate($challenge, $validate)
     {
-        if (strlen($validate) != 32)
-        {
-            return FALSE;
+        if (strlen($validate) != 32) {
+            return false;
         }
-        if (md5($this->appKey.'geetest'.$challenge) != $validate)
-        {
-            return FALSE;
+        if (md5($this->appKey.'geetest'.$challenge) != $validate) {
+            return false;
         }
-        return TRUE;
+        return true;
     }
 
     private function sendRequest($url)
     {
-        if (function_exists('curl_exec'))
-        {
+        if (function_exists('curl_exec')) {
             $ch = curl_init();
 
             curl_setopt($ch, CURLOPT_URL, $url);
@@ -92,9 +82,7 @@ class Geetest
             $data = curl_exec($ch);
 
             curl_close($ch);
-        }
-        else
-        {
+        } else {
             $opts  = [
                 'http' => [
                     'method' => 'GET',
@@ -118,8 +106,7 @@ class Geetest
      */
     private function decode_response($challenge, $string)
     {
-        if (strlen($string) > 100)
-        {
+        if (strlen($string) > 100) {
             return 0;
         }
         $key = [];
@@ -135,15 +122,11 @@ class Geetest
         $res = 0;
         $array_challenge = str_split($challenge);
         $array_value = str_split($string);
-        for ($i = 0; $i < strlen($challenge); $i++)
-        {
+        for ($i = 0; $i < strlen($challenge); $i++) {
             $item = $array_challenge[$i];
-            if (in_array($item, $chongfu))
-            {
+            if (in_array($item, $chongfu)) {
                 continue;
-            }
-            else
-            {
+            } else {
                 $value = $shuzi[$count % 5];
                 array_push($chongfu, $item);
                 $count++;
@@ -151,8 +134,7 @@ class Geetest
             }
         }
 
-        for ($j = 0; $j < strlen($string); $j++)
-        {
+        for ($j = 0; $j < strlen($string); $j++) {
             $res += $key[$array_value[$j]];
         }
         $res = $res - $this->decodeRandBase($challenge);
@@ -167,8 +149,7 @@ class Geetest
      */
     private function get_x_pos_from_str($x_str)
     {
-        if (strlen($x_str) != 5)
-        {
+        if (strlen($x_str) != 5) {
             return 0;
         }
         $sum_val = 0;
@@ -192,14 +173,10 @@ class Geetest
 
         $answer_decode = "";
         // 通过两个字符串奇数和偶数位拼接产生答案位
-        for ($i = 0; $i < 9; $i++)
-        {
-            if ($i % 2 == 0)
-            {
+        for ($i = 0; $i < 9; $i++) {
+            if ($i % 2 == 0) {
                 $answer_decode = $answer_decode . $full_bg_name[$i];
-            }
-            elseif ($i % 2 == 1)
-            {
+            } elseif ($i % 2 == 1) {
                 $answer_decode = $answer_decode . $bg_name[$i];
             }
         }
@@ -218,8 +195,7 @@ class Geetest
     {
         $base = substr($challenge, 32, 2);
         $tempArray = array();
-        for ($i = 0; $i < strlen($base); $i++)
-        {
+        for ($i = 0; $i < strlen($base); $i++) {
             $tempAscii = ord($base[$i]);
             $result    = ($tempAscii > 57) ? ($tempAscii - 87) : ($tempAscii - 48);
             array_push($tempArray, $result);
@@ -236,8 +212,7 @@ class Geetest
      */
     public function getAnswer($validate)
     {
-        if ($validate)
-        {
+        if ($validate) {
             $value     = explode("_", $validate);
             $challenge = $_SESSION['challenge'];
             $ans       = $this->decode_response($challenge, $value['0']);
@@ -245,47 +220,34 @@ class Geetest
             $grp_idx   = $this->decode_response($challenge, $value['2']);
             $x_pos     = $this->get_failback_pic_ans($bg_idx, $grp_idx);
             $answer    = abs($ans - $x_pos);
-            if ($answer < 4)
-            {
+            if ($answer < 4) {
                 return 1;
-            }
-            else
-            {
+            } else {
                 return 0;
             }
-        }
-        else
-        {
+        } else {
             return 0;
         }
-
     }
 
     public function postRequest($url, $postdata = null)
     {
         $data = http_build_query($postdata);
-        if (function_exists('curl_exec'))
-        {
+        if (function_exists('curl_exec')) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            if (!$postdata)
-            {
+            if (!$postdata) {
                 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
                 curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
-            }
-            else
-            {
+            } else {
                 curl_setopt($ch, CURLOPT_POST, 1);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
             }
             $data = curl_exec($ch);
             curl_close($ch);
-        }
-        else
-        {
-            if ($postdata)
-            {
+        } else {
+            if ($postdata) {
                 $url = $url.'?'.$data;
                 $opts = [
                     'http' => [
@@ -301,4 +263,3 @@ class Geetest
         return $data;
     }
 }
-?>

@@ -61,9 +61,9 @@
             per = {$articles.per},
             pages = Math.ceil({$articles.total} / per),
             href = '/admin/articles/';
-            laypage.dir = '/app/views/css/laypage.css';
+            laypage.dir = '/dist/css/laypage.css';
             laypage({
-                dir: '/app/views/css/laypage.css',
+                dir: '/dist/css/laypage.css',
                 cont: 'pagination',
                 pages: pages,
                 curr: page,

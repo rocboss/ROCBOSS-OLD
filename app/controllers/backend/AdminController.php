@@ -1,17 +1,17 @@
 <?php
 namespace backend;
 
-use \Controller;
-use \Roc;
-use \UserModel;
-use \ClubModel;
-use \LinkModel;
-use \ScoreModel;
-use \TopicModel;
-use \ReplyModel;
-use \WhisperModel;
-use \AttachmentModel;
-use \WithdrawModel;
+use Roc;
+use UserModel;
+use ClubModel;
+use LinkModel;
+use ScoreModel;
+use TopicModel;
+use ReplyModel;
+use WhisperModel;
+use AttachmentModel;
+use WithdrawModel;
+
 class AdminController extends BaseController
 {
     public static $per = 12;
@@ -60,11 +60,11 @@ class AdminController extends BaseController
         self::__checkManagePrivate(true);
 
         $allSysData = Roc::db()->from('roc_config')->select()->many();
-        if (!empty($allSysData))
-
+        if (!empty($allSysData)) {
             foreach ($allSysData as $key => $value) {
                 $system[$value['key']] = $value['value'];
             }
+        }
 
         parent::renderBase(['active' => 'system']);
         Roc::render('admin/system', [
@@ -102,7 +102,7 @@ class AdminController extends BaseController
         $page = parent::getNumVal($page, 1, true);
 
         $articles = ArticleModel::m()->getList(($page - 1) * self::$per, self::$per, 0, true);
-        foreach ($articles as &$article)  {
+        foreach ($articles as &$article) {
             $article['title'] = Roc::filter()->topicOut($article['title'], true);
             $article['content'] = Roc::controller('frontend\Index')->cutSubstr(Roc::filter()->topicOut($article['content']), 128);
             $article['post_time'] = parent::formatTime($article['post_time']);
@@ -238,7 +238,7 @@ class AdminController extends BaseController
                     'add_user' => Roc::controller('frontend\User')->getloginInfo()['uid'],
                     'add_time' => time(),
                 ]);
-            } else if ($data->status == 2) {
+            } elseif ($data->status == 2) {
                 $ret = UserModel::m()->updateInfo([
                     'score' => $wd['score'] + UserModel::m()->getUserScore($wd['uid'])
                 ], $wd['uid']);

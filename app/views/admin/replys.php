@@ -20,7 +20,7 @@
                                 <small class="pull-right">
                                     <a href="/read/{$reply.tid}#reply-{$reply.pid}" target="_blank" class="btn btn-success btn-xs"><i class="fa fa-mail-forward"></i> 查看</a>
                                 </small>
-                                <img src="{$reply.avatar}" style="width: 30px; height: 30px; border-radius: 50%;"/>
+                                <img src="{$reply.avatar}" onerror="javascript:this.src='https://dn-roc.qbox.me/avatar/0-avatar.png';" style="width: 30px; height: 30px; border-radius: 50%;"/>
                                 <span style="color: #5593a1">{$reply.username}</span>
                                 回复话题 “<strong><a href="/read/{$reply.tid}" target="_blank">{$reply.topic_title}</a></strong>”
                                 <div style="color: #999; margin-top: 6px;">
@@ -55,9 +55,9 @@
             per = {$per},
             pages = Math.ceil({$count} / per),
             href = '/admin/replys/';
-            laypage.dir = '/app/views/css/laypage.css';
+            laypage.dir = '/dist/css/laypage.css';
             laypage({
-                dir: '/app/views/css/laypage.css',
+                dir: '/dist/css/laypage.css',
                 cont: 'pagination',
                 pages: pages,
                 curr: page,

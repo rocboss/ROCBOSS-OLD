@@ -2,12 +2,13 @@ define(function(require, exports, module) {
     var $ = require("jquery"),
         vue = require("vue"),
         layer = require("layer"),
-        common = require("js/common");
+        common = require("js/base/common");
     layer.config({
-        path: '/app/views/vendor/layer/'
+        path: '/vendor/layer/',
+        extend: 'extend/layer.ext.js'
     });
     var _csrf, cid = 0;
-    common.ready();
+
     exports.init = function() {
         $(document).ready(function() {
             var menu;
@@ -33,7 +34,7 @@ define(function(require, exports, module) {
             for (var i = 1; i <= 36; i++) {
                 emoji.push('/app/views/emoji/' + i + '.gif');
             };
-            require('wangEditor')($);
+            require('wangEditor');
             wangEditor.config.printLog = false;
             var editor = new wangEditor('editor');
             editor.config.menuFixed = false;
@@ -90,7 +91,7 @@ define(function(require, exports, module) {
             for (var i = 1; i <= 36; i++) {
                 emoji.push('/app/views/emoji/' + i + '.gif');
             };
-            require('wangEditor')($);
+            require('wangEditor');
             wangEditor.config.printLog = false;
             var editor = new wangEditor('editor');
             editor.config.menuFixed = false;

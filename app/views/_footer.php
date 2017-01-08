@@ -1,5 +1,5 @@
 <div class="turn-light">
-    <a href="javascript:turnLight();"><i class="fa fa-lightbulb-o"></i></a>
+    <a id="turn-light"><i class="fa fa-lightbulb-o"></i></a>
 </div>
 <footer class="main-footer">
   <div class="pull-right hidden-xs">
@@ -8,35 +8,19 @@
   <strong>Copyright &copy; 2016 <a href="https://www.rocboss.com" target="_blank">ROCBOSS</a>.</strong> All rights
   reserved.
 </footer>
-<script src="{:'/'.Roc::get('system.views.path').'/'}js/sea.js?v=2.2.0"></script>
+{if Roc::get('system.webpack_debug')}
+<script src="http://localhost:8080/webpack-dev-server.js"></script>
+<script src="http://localhost:8080/web/hot/{$asset}.min.js"></script>
+{else}
+<script src="/dist/{$asset}.min.js"></script>
+{/if}
 <script type="text/javascript">
-    seajs.config({
-        base: "{:'/'.Roc::get('system.views.path').'/'}",
-        alias: {
-            "jquery": "vendor/jquery-1.10.2.min",
-            "bootstrap": "vendor/bootstrap.min",
-            "lazyload": "vendor/jquery.lazyload.min.js",
-            "webuploader": "vendor/webuploader/webuploader.js",
-            "layer": "vendor/layer/layer",
-            "laypage": "vendor/laypage",
-            "vue": "vendor/vue.min",
-            "fancybox": "vendor/jquery.fancybox",
-            "wangEditor": "vendor/wangEditor.js",
-            "peity": "vendor/jquery.peity.min",
-            "vue": "vendor/vue.min",
-            "laypage": "vendor/laypage",
-            "highlight": "vendor/highlight.pack"
-        },
-        preload: ["jquery"]
-    });
-    function turnLight() {
-        layer.load(2);
-        $.post('/turn/light', {}, function(data) {
-            if (data.status == 'success') {
-                setTimeout(function() {
-                    window.location.reload();
-                }, 800);
-            }
-        }, 'json');
-    }
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?48042604b3c7a9973810a87540843e34";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
 </script>

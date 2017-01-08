@@ -1,10 +1,10 @@
 <?php
 namespace frontend;
 
-use \Controller;
-use \Roc;
+use Bootstrap;
+use Roc;
 
-class BaseController extends Controller
+class BaseController extends Bootstrap
 {
     public static $_code = [
         '10000' => '请求成功',
@@ -33,6 +33,8 @@ class BaseController extends Controller
         '10409' => '该账户已绑定QQ',
         '10410' => '该账户已绑定微博',
         '10411' => '不开放注册',
+        '10412' => '该账户已绑定微信',
+        '10413' => '微信授权已超时',
     ];
 
     /**
@@ -40,10 +42,13 @@ class BaseController extends Controller
      */
     protected static function renderBase(array $params)
     {
+        $asset = isset($params['asset']) ? $params['asset'] : (isset($params['active']) ? $params['active'] : 'index');
         $theme = in_array(Roc::request()->cookies->light, ['black', 'white']) ? Roc::request()->cookies->light : 'white';
 
         Roc::render('_header', [
             'pageTitle' => isset($params['pageTitle']) ? $params['pageTitle'] : '',
+            'keywords' => isset($params['keywords']) ? $params['keywords'] : '',
+            'description' => isset($params['description']) ? $params['description'] : '',
             'active' => $params['active'],
             'seo'=>[
                     'sitename' => Roc::get('sys.config')['sitename'],
@@ -51,10 +56,14 @@ class BaseController extends Controller
                     'description' => Roc::get('sys.config')['description']
                 ],
             'loginInfo' => Roc::controller('frontend\User')->getloginInfo(),
+            'asset' => $asset,
             'theme' => $theme,
         ], 'headerLayout');
 
-        Roc::render('_footer', [], 'footerLayout');
+        Roc::render('_footer', [
+            'asset' => $asset,
+            'theme' => $theme
+        ], 'footerLayout');
     }
 
     /**
@@ -237,13 +246,34 @@ class BaseController extends Controller
     }
 
     /**
+     * 发送GET请求
+     * @method httpGet
+     * @param  [type]  $url [description]
+     * @return [type]       [description]
+     */
+    protected static function httpGet($url)
+    {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 500);
+        // curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
+        // curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, true);
+        curl_setopt($curl, CURLOPT_URL, $url);
+
+        $res = curl_exec($curl);
+        curl_close($curl);
+
+        return $res;
+    }
+
+    /**
      * 获取GUID
      * @method getGuid
      * @return [type]  [description]
      */
     protected static function getGuid($sand)
     {
-        $charId = strtoupper(md5(uniqid($sand.mt_rand(), true)));
+        $charId = md5(uniqid($sand.mt_rand(), true));
 
         $hyphen = chr(45); // "-"
         $uuid = substr($charId, 0, 8).$hyphen
@@ -253,5 +283,21 @@ class BaseController extends Controller
             .substr($charId, 20, 12);
 
         return $uuid;
+    }
+
+    /**
+     * 生成随机字符串
+     * @method randomString
+     * @param  integer        $length [description]
+     * @return [type]                 [description]
+     */
+    protected static function randomString($length = 8)
+    {
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_ []{}<>~`+=,.;:/?|';
+        $string = '';
+        for ($i = 0; $i < $length; $i++) {
+            $string .= substr($chars, mt_rand(0, strlen($chars) - 1), 1);
+        }
+        return $string;
     }
 }

@@ -73,17 +73,13 @@ class Response
 
     public function status($code = null)
     {
-        if ($code === null)
-        {
+        if ($code === null) {
             return $this->status;
         }
 
-        if (array_key_exists($code, self::$codes))
-        {
+        if (array_key_exists($code, self::$codes)) {
             $this->status = $code;
-        }
-        else
-        {
+        } else {
             throw new \Exception('Invalid status code.');
         }
 
@@ -92,15 +88,11 @@ class Response
 
     public function header($name, $value = null)
     {
-        if (is_array($name))
-        {
-            foreach ($name as $k => $v)
-            {
+        if (is_array($name)) {
+            foreach ($name as $k => $v) {
                 $this->headers[$k] = $v;
             }
-        }
-        else
-        {
+        } else {
             $this->headers[$name] = $value;
         }
 
@@ -130,8 +122,7 @@ class Response
 
     public function cache($expires)
     {
-        if ($expires === false)
-        {
+        if ($expires === false) {
             $this->headers['Expires']       = 'Mon, 26 Jul 1997 05:00:00 GMT';
             $this->headers['Cache-Control'] = [
                 'no-store, no-cache, must-revalidate',
@@ -139,14 +130,11 @@ class Response
                 'max-age=0'
             ];
             $this->headers['Pragma']        = 'no-cache';
-        }
-        else
-        {
+        } else {
             $expires                        = is_int($expires) ? $expires : strtotime($expires);
             $this->headers['Expires']       = gmdate('D, d M Y H:i:s', $expires) . ' GMT';
             $this->headers['Cache-Control'] = 'max-age=' . ($expires - time());
-            if (isset($this->headers['Pragma']) && $this->headers['Pragma'] == 'no-cache')
-            {
+            if (isset($this->headers['Pragma']) && $this->headers['Pragma'] == 'no-cache') {
                 unset($this->headers['Pragma']);
             }
         }
@@ -155,32 +143,23 @@ class Response
 
     public function sendHeaders()
     {
-        if (strpos(php_sapi_name(), 'cgi') !== false)
-        {
+        if (strpos(php_sapi_name(), 'cgi') !== false) {
             header(sprintf('Status: %d %s', $this->status, self::$codes[$this->status]), true);
-        }
-        else
-        {
+        } else {
             header(sprintf('%s %d %s', (isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1'), $this->status, self::$codes[$this->status]), true, $this->status);
         }
 
-        foreach ($this->headers as $field => $value)
-        {
-            if (is_array($value))
-            {
-                foreach ($value as $v)
-                {
+        foreach ($this->headers as $field => $value) {
+            if (is_array($value)) {
+                foreach ($value as $v) {
                     header($field . ': ' . $v, false);
                 }
-            }
-            else
-            {
+            } else {
                 header($field . ': ' . $value);
             }
         }
 
-        if (($length = strlen($this->body)) > 0)
-        {
+        if (($length = strlen($this->body)) > 0) {
             header('Content-Length: ' . $length);
         }
 
@@ -189,13 +168,11 @@ class Response
 
     public function send()
     {
-        if (ob_get_length() > 0)
-        {
+        if (ob_get_length() > 0) {
             ob_end_clean();
         }
 
-        if (!headers_sent())
-        {
+        if (!headers_sent()) {
             $this->sendHeaders();
         }
 

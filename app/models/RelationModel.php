@@ -10,17 +10,17 @@ class RelationModel extends Model
             foreach ($attachment_id as $a_id) {
                 $this->addRelation($res_id, $a_id, $uid, $type);
             }
-        } else if (is_numeric($attachment_id) && $attachment_id > 0) {
+        } elseif (is_numeric($attachment_id) && $attachment_id > 0) {
             $attachment = Roc::model('attachment')->getAttachment($attachment_id, $uid);
 
             if (!empty($attachment)) {
                 $this->_db->from($this->_table)
-                    ->insert([
-                        'attachment_id' => $attachment_id,
-                        'res_id' => $res_id,
-                        'type' => $type,
-                        'valid' => 1
-                    ])->execute();
+                        ->insert([
+                            'attachment_id' => $attachment_id,
+                            'res_id' => $res_id,
+                            'type' => $type,
+                            'valid' => 1
+                        ])->execute();
             }
         }
     }

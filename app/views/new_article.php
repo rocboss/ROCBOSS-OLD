@@ -1,5 +1,5 @@
 {$headerLayout}
-<link rel="stylesheet" type="text/css" href="/app/views/vendor/webuploader/webuploader.css" charset="utf-8">
+<link rel="stylesheet" type="text/css" href="/vendor/webuploader/webuploader.css" charset="utf-8">
 <div class="content-wrapper">
   <section class="content-header">
     <ol class="breadcrumb">
@@ -41,11 +41,10 @@
         </div>
     </div>
   </section>
-    {$footerLayout}
-    <script type="text/javascript">
-        seajs.use("js/article", function(article) {
-            article.newArticle('{$data.uploadToken}', '{$data.saveKey}');
-        });
-    </script>
+  <script type="text/javascript">
+      var uploadToken = '{$data.uploadToken}';
+      var saveKey = '{$data.saveKey}';
+  </script>
+  {$footerLayout}
 </body>
 </html>

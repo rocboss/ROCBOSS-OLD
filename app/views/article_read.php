@@ -59,11 +59,9 @@
         </div>
     </div>
   </section>
-    {$footerLayout}
-    <script type="text/javascript">
-        seajs.use("js/article", function(article) {
-            article.read({$data.id});
-        });
-    </script>
+  <script type="text/javascript">
+      var aid = {$data.id};
+  </script>
+  {$footerLayout}
 </body>
 </html>

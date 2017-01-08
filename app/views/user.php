@@ -2,7 +2,7 @@
   <div class="content-wrapper">
     <section class="content-header">
       <ol class="breadcrumb">
-        <li><a href="/"><i class="fa fa-home"></i> 首页</a></li>
+        <li><a href="/topic"><i class="fa fa-home"></i> 首页</a></li>
         <li class="active">{if $user['uid'] != $loginInfo['uid']}TA{else}我{/if}的主页</li>
       </ol>
     </section>
@@ -143,7 +143,7 @@
                   <ul class="users-list row clearfix" v-if="fans.length > 0" v-lazyload="fans">
                     <template v-for="fan in fans">
                         <li class="fan col-md-3 col-sm-6 col-xs-12">
-                          <img class="u-avatar" alt="{{ fan.username }}" src="/app/views/img/loading.gif" data-original="{{ fan.avatar }}">
+                          <img class="u-avatar" alt="{{ fan.username }}" src="/dist/img/loading.gif" data-original="{{ fan.avatar }}">
                           <a class="users-list-name" href="/user/{{ fan.uid }}">{{ fan.username }}</a>
                         </li>
                     </template>
@@ -163,7 +163,7 @@
                   <ul class="users-list row clearfix" v-if="follows.length > 0" v-lazyload="follows">
                     <template v-for="follow in follows">
                         <li class="fan col-md-3 col-sm-6 col-xs-12">
-                          <img class="u-avatar" alt="{{ follow.username }}" src="/app/views/img/loading.gif" data-original="{{ follow.avatar }}">
+                          <img class="u-avatar" alt="{{ follow.username }}" src="/dist/img/loading.gif" data-original="{{ follow.avatar }}">
                           <a class="users-list-name" href="/user/{{ follow.fuid }}">{{ follow.username }}</a>
                         </li>
                     </template>
@@ -185,21 +185,29 @@
                           <!-- 主题 -->
                           <div class="post" v-if="row.type == 'topic'">
                             <div class="user-block">
-                              <a href="/user/{{ row.uid }}"><img class="img-circle img-bordered-sm u-avatar" src="/app/views/img/loading.gif" data-original="{{ row.avatar }}" alt="{{ row.username }}"></a>
-                                  <span class="username">
-                                    <a href="/user/{{ row.uid }}">{{ row.username }}</a>
-                                    <a href="/read/{{ row.tid }}" class="pull-right btn-box-tool"><i class="fa fa-comments-o margin-r-5"></i> 评论 ({{ row.comment_num }})</a>
-                                  </span>
-                                  <span class="description">
-                                      <template v-if="row.location != ''">
-                                          <i class="fa fa-map-marker margin-r-5"></i> {{ row.location }} -
-                                      </template>
-                                      {{ row.post_time }}
-                                  </span>
+                              <a href="/user/{{ row.uid }}" class="user-link">
+                                  <img class="topic-avatar u-avatar" src="/dist/img/loading.gif" data-original="{{ row.avatar }}" alt="{{ row.username }}">
+                                  <span class="comment_num" v-if="row.comment_num > 0">{{ row.comment_num }}</span>
+                              </a>
+                              <span class="username">
+                                <a href="/user/{{ row.uid }}">{{ row.username }}</a>
+                                <div class="topic-status">
+                                  <div class="c-ico">
+                                      <i class="fa fa-thumbs-up"></i>
+                                  </div>
+                                  <div class="c-num">{{ row.praise_num }}</div>
+                                </div>
+                              </span>
+                              <span class="description">
+                                  <a href="/read/{{ row.tid }}" class="post-title">
+                                    <h5>
+                                        <span class="label label-success margin-r-5" v-show="row.is_top > 0">置顶</span>
+                                        <span class="label label-warning margin-r-5" v-show="row.is_essence > 0">精华</span>
+                                        {{ row.title }}
+                                    </h5>
+                                  </a>
+                              </span>
                             </div>
-                            <a href="/read/{{ row.tid }}" class="post-title">
-                              <h5><span class="label label-success margin-r-5" v-show="row.is_top > 0">置顶</span> {{ row.title }}</h5>
-                            </a>
                           </div>
 
                           <!-- 文章 -->
@@ -237,7 +245,7 @@
         <div class="col-md-4">
           <div class="box box-success">
             <div class="box-body box-profile">
-              <img class="profile-user-img img-responsive img-circle" src="{$avatar}" alt="{$user.username}">
+              <img class="profile-user-img img-responsive img-circle" src="{$avatar}" alt="{$user.username}" onerror="javascript:this.src='https://dn-roc.qbox.me/avatar/0-avatar.png';">
               <h3 class="profile-username text-center">{$user.username}</h3>
               <p class="text-muted text-center">Join {:date('d/m, Y', $user['reg_time'])}</p>
               <ul class="list-group list-group-unbordered">
@@ -304,18 +312,15 @@
       </div>
 
     </section>
-
-    {$footerLayout}
     <script type="text/javascript">
-        seajs.use("js/user.js?v=2.2.1.12", function(user) {
-            user.init({
-                uid: {$user.uid},
-                score: {$user.score},
-                phone: '{$user.phone}',
-                topics: {:json_encode($topics)}
-            });
-        });
+        var config = {
+            uid: {$user.uid},
+            score: {$user.score},
+            phone: '{$user.phone}',
+            topics: {:json_encode($topics)}
+        };
     </script>
+    {$footerLayout}
   </div>
 </div>
 </body>

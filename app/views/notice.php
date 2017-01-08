@@ -108,13 +108,11 @@
         </div>
     </div>
   </section>
-    {$footerLayout}
-    <script type="text/javascript">
-        seajs.use("js/notice", function(notice) {
-            notice.init({
-                unread: {:json_encode($unread)}
-            });
-        });
-    </script>
+  <script type="text/javascript">
+    var config = {
+      unread: {:json_encode($unread)}
+    };
+  </script>
+  {$footerLayout}
 </body>
 </html>

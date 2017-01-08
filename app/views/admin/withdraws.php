@@ -84,9 +84,9 @@
             per = {$per},
             pages = Math.ceil({$count} / per),
             href = '/admin/withdraws/';
-            laypage.dir = '/app/views/css/laypage.css';
+            laypage.dir = '/dist/css/laypage.css';
             laypage({
-                dir: '/app/views/css/laypage.css',
+                dir: '/dist/css/laypage.css',
                 cont: 'pagination',
                 pages: pages,
                 curr: page,

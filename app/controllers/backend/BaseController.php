@@ -1,10 +1,10 @@
 <?php
 namespace backend;
 
-use \Controller;
-use \Roc;
+use Roc;
+use Bootstrap;
 
-class BaseController extends Controller
+class BaseController extends Bootstrap
 {
     public static $_code = [
         '10000' => '请求成功',
@@ -73,7 +73,7 @@ class BaseController extends Controller
      * @param  [type] $data [description]
      * @return [type]       [description]
      */
-    public static function renderJson($code, $msg = NULL, $data = NULL)
+    public static function renderJson($code, $msg = null, $data = null)
     {
         return Roc::json([
             'code' => $code,

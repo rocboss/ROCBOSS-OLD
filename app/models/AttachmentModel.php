@@ -7,14 +7,14 @@ class AttachmentModel extends Model
     public function getAttachment($id, $uid, $size = false)
     {
         $data = $this->_db->from($this->_table)
-                    ->where(['id'=>$id, 'uid'=>$uid, 'valid'=>1])
-                    ->select('path')
-                    ->one();
+                        ->where(['id'=>$id, 'uid'=>$uid, 'valid'=>1])
+                        ->select('path')
+                        ->one();
 
-        if ($size === false)  {
+        if ($size === false) {
             return $data;
         } else {
-            if (!empty($data))  {
+            if (!empty($data)) {
                 return $this->convertPath($data['path'], $size);
             } else {
                 return '';
@@ -41,11 +41,11 @@ class AttachmentModel extends Model
                         ->select('path')
                         ->many();
 
-            if (!empty($data))
-
+            if (!empty($data)) {
                 foreach ($data as $attachment) {
                     array_push($return, $this->convertPath($attachment['path']));
                 }
+            }
         }
 
         return $return;

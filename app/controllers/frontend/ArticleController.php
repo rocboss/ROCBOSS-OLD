@@ -1,12 +1,10 @@
 <?php
-
 namespace frontend;
 
-use \Controller;
-use \Roc;
-use \UserModel;
-use \ArticleModel;
-use \AttachmentModel;
+use Roc;
+use UserModel;
+use ArticleModel;
+use AttachmentModel;
 class ArticleController extends BaseController
 {
     public static $per = 12;
@@ -72,7 +70,14 @@ class ArticleController extends BaseController
             $data['hasCollection'] = ArticleModel::m()->getCollectionDetail($data['id'], $uid) > 0 ? true : false;
         }
 
-        parent::renderBase(['active' => 'article']);
+        parent::renderBase([
+            'asset' => 'article_read',
+            'active' => 'article',
+            'pageTitle' => (!empty($data) ? $data['title'] : ''),
+            'keywords' =>  (!empty($data) ? $data['title'] : ''),
+            'description' => (!empty($data) ? strip_tags(Roc::controller('frontend\Index')->cutSubstr(Roc::filter()->topicOut($data['content']), 128)) : ''),
+        ]);
+
         Roc::render('article_read', [
             'data' => $data
         ]);
@@ -97,7 +102,7 @@ class ArticleController extends BaseController
                 'saveKey' => 'article/'.$key
             ];
 
-            parent::renderBase(['active' => 'newArticle', 'pageTitle' => '文章投稿']);
+            parent::renderBase(['asset' => 'new_article', 'active' => 'newArticle', 'pageTitle' => '文章投稿']);
             Roc::render('new_article', [
                 'data' => $data
             ]);

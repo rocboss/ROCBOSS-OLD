@@ -27,8 +27,7 @@ class Engine
     {
         $callback = $this->dispatcher->get($name);
 
-        if (is_callable($callback))
-        {
+        if (is_callable($callback)) {
             return $this->dispatcher->run($name, $params);
         }
 
@@ -43,8 +42,7 @@ class Engine
         static $initialized = false;
         $self = $this;
 
-        if ($initialized)
-        {
+        if ($initialized) {
             $this->vars = [];
             $this->loader->reset();
             $this->dispatcher->reset();
@@ -53,8 +51,7 @@ class Engine
         $this->loader->register('request', '\system\net\Request');
         $this->loader->register('response', '\system\net\Response');
         $this->loader->register('router', '\system\net\Router');
-        $this->loader->register('view', '\system\template\View', [], function($view) use ($self)
-        {
+        $this->loader->register('view', '\system\template\View', [], function ($view) use ($self) {
             $view->path = $self->get('system.views.path');
         });
 
@@ -72,8 +69,7 @@ class Engine
             'json',
             'jsonp'
         );
-        foreach ($methods as $name)
-        {
+        foreach ($methods as $name) {
             $this->dispatcher->set($name, array(
                 $this,
                 '_' . $name
@@ -90,8 +86,7 @@ class Engine
 
     public function handleErrors($enabled)
     {
-        if ($enabled)
-        {
+        if ($enabled) {
             set_error_handler(array(
                 $this,
                 'handleError'
@@ -100,9 +95,7 @@ class Engine
                 $this,
                 'handleException'
             ));
-        }
-        else
-        {
+        } else {
             restore_error_handler();
             restore_exception_handler();
         }
@@ -110,16 +103,14 @@ class Engine
 
     public function handleError($errno, $errstr, $errfile, $errline)
     {
-        if ($errno & error_reporting())
-        {
+        if ($errno & error_reporting()) {
             throw new \ErrorException($errstr, $errno, 0, $errfile, $errline);
         }
     }
 
     public function handleException(\Exception $e)
     {
-        if ($this->get('system.log_errors'))
-        {
+        if ($this->get('system.log_errors')) {
             error_log($e->getMessage());
         }
 
@@ -128,8 +119,7 @@ class Engine
 
     public function map($name, $callback)
     {
-        if (method_exists($this, $name))
-        {
+        if (method_exists($this, $name)) {
             throw new \Exception('Cannot override an existing framework method.');
         }
 
@@ -138,8 +128,7 @@ class Engine
 
     public function register($name, $class, array $params = [], $callback = null)
     {
-        if (method_exists($this, $name))
-        {
+        if (method_exists($this, $name)) {
             throw new \Exception('Cannot override an existing framework method.');
         }
 
@@ -158,23 +147,20 @@ class Engine
 
     public function get($key = null)
     {
-        if ($key === null)
+        if ($key === null) {
             return $this->vars;
+        }
 
         return isset($this->vars[$key]) ? $this->vars[$key] : null;
     }
 
     public function set($key, $value = null)
     {
-        if (is_array($key) || is_object($key))
-        {
-            foreach ($key as $k => $v)
-            {
+        if (is_array($key) || is_object($key)) {
+            foreach ($key as $k => $v) {
                 $this->vars[$k] = $v;
             }
-        }
-        else
-        {
+        } else {
             $this->vars[$key] = $value;
         }
     }
@@ -186,12 +172,9 @@ class Engine
 
     public function clear($key = null)
     {
-        if (is_null($key))
-        {
+        if (is_null($key)) {
             $this->vars = [];
-        }
-        else
-        {
+        } else {
             unset($this->vars[$key]);
         }
     }
@@ -210,8 +193,7 @@ class Engine
         $response   = $this->response();
         $router     = $this->router();
 
-        if (ob_get_length() > 0)
-        {
+        if (ob_get_length() > 0) {
             $response->write(ob_get_clean());
         }
 
@@ -219,34 +201,31 @@ class Engine
 
         $this->handleErrors($this->get('system.handle_errors'));
 
-        if ($request->ajax)
-        {
+        if ($request->ajax) {
             $response->cache(false);
         }
 
-        $this->after('start', function() use ($self)
-        {
+        $this->after('start', function () use ($self) {
             $self->stop();
         });
 
-        while ($route = $router->route($request))
-        {
+        while ($route = $router->route($request)) {
             $params = array_values($route->params);
 
             $continue = $this->dispatcher->execute($route->callback, $params);
 
             $dispatched = true;
 
-            if (!$continue)
+            if (!$continue) {
                 break;
+            }
 
             $router->next();
 
             $dispatched = false;
         }
 
-        if (!$dispatched)
-        {
+        if (!$dispatched) {
             $this->notFound();
         }
     }
@@ -265,12 +244,9 @@ class Engine
     {
         $msg = sprintf('<h1>500 Internal Server Error</h1>' . '<h3>%s (%s)</h3>' . '<pre>%s</pre>', $e->getMessage(), $e->getCode(), $e->getTraceAsString());
 
-        try
-        {
+        try {
             $this->response(false)->status(500)->write($msg)->send();
-        }
-        catch (\Exception $ex)
-        {
+        } catch (\Exception $ex) {
             exit($msg);
         }
     }
@@ -289,13 +265,11 @@ class Engine
     {
         $base = $this->get('system.base_url');
 
-        if ($base === null)
-        {
+        if ($base === null) {
             $base = $this->request()->base;
         }
 
-        if ($base != '/' && strpos($url, '://') === false)
-        {
+        if ($base != '/' && strpos($url, '://') === false) {
             $url = preg_replace('#/+#', '/', $base . '/' . $url);
         }
 
@@ -304,12 +278,9 @@ class Engine
 
     public function _render($file, $data = null, $key = null)
     {
-        if ($key !== null)
-        {
+        if ($key !== null) {
             $this->view()->set($key, $this->view()->fetch($file, $data));
-        }
-        else
-        {
+        } else {
             $this->view()->render($file, $data);
         }
     }
@@ -336,8 +307,7 @@ class Engine
 
         $this->response()->header('ETag', $id);
 
-        if (isset($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] === $id)
-        {
+        if (isset($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] === $id) {
             $this->halt(304);
         }
     }
@@ -346,8 +316,7 @@ class Engine
     {
         $this->response()->header('Last-Modified', gmdate('D, d M Y H:i:s \G\M\T', $time));
 
-        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) === $time)
-        {
+        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) === $time) {
             $this->halt(304);
         }
     }

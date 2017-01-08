@@ -1,10 +1,10 @@
 <?php
 namespace backend;
 
-use \Controller;
-use \Roc;
-use \ArticleModel;
-use \AttachmentModel;
+use Roc;
+use ArticleModel;
+use AttachmentModel;
+
 class ArticleController extends BaseController
 {
     public static $per = 12;
@@ -22,7 +22,7 @@ class ArticleController extends BaseController
         $page = parent::getNumVal($page, 1, true);
 
         $articles = ArticleModel::m()->getList(($page - 1) * self::$per, self::$per, 0, true);
-        foreach ($articles as &$article)  {
+        foreach ($articles as &$article) {
             $article['title'] = Roc::filter()->topicOut($article['title'], true);
             $article['content'] = Roc::controller('frontend\Index')->cutSubstr(Roc::filter()->topicOut($article['content']), 128);
             $article['post_time'] = parent::formatTime($article['post_time']);

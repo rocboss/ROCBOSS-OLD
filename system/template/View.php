@@ -2,7 +2,7 @@
 
 namespace system\template;
 
-use \Roc;
+use Roc;
 
 class View
 {
@@ -68,15 +68,11 @@ class View
 
     public function set($key, $value = null)
     {
-        if (is_array($key) || is_object($key))
-        {
-            foreach ($key as $k => $v)
-            {
+        if (is_array($key) || is_object($key)) {
+            foreach ($key as $k => $v) {
                 $this->vars[$k] = $v;
             }
-        }
-        else
-        {
+        } else {
             $this->vars[$key] = $value;
         }
     }
@@ -88,12 +84,9 @@ class View
 
     public function clear($key = null)
     {
-        if (is_null($key))
-        {
+        if (is_null($key)) {
             $this->vars = [];
-        }
-        else
-        {
+        } else {
             unset($this->vars[$key]);
         }
     }
@@ -102,13 +95,11 @@ class View
     {
         $this->template = $this->getTemplate($file);
 
-        if (!file_exists($this->template))
-        {
+        if (!file_exists($this->template)) {
             throw new \Exception("Template file not found: {$this->template}.");
         }
 
-        if (is_array($data))
-        {
+        if (is_array($data)) {
             $this->vars = array_merge($this->vars, $data);
         }
 
@@ -116,8 +107,7 @@ class View
 
         $tmpPath = Roc::get('system.views.cache').'/'.str_replace('/', '_', $this->template);
 
-        if (!$this->isCached($tmpPath))
-        {
+        if (!$this->isCached($tmpPath)) {
             $tpl = preg_replace(array_keys($this->system_replace), $this->system_replace, @file_get_contents($this->template));
 
             @file_put_contents($tmpPath, $tpl, LOCK_EX);
@@ -132,10 +122,8 @@ class View
 
         $cachedir = opendir($dir);
 
-        while ($file = @readdir($cachedir))
-        {
-            if ($file != "." && $file != "..")
-            {
+        while ($file = @readdir($cachedir)) {
+            if ($file != "." && $file != "..") {
                 unlink($dir . '/' . $file);
             }
         }
@@ -161,36 +149,29 @@ class View
 
     public function getTemplate($file)
     {
-        if ((substr($file, -4) != '.php'))
-        {
+        if ((substr($file, -4) != '.php')) {
             $file .= '.php';
         }
-        if ((substr($file, 0, 1) == '/'))
-        {
+        if ((substr($file, 0, 1) == '/')) {
             return $file;
-        }
-        else
-        {
+        } else {
             return $this->path . '/' . $file;
         }
     }
 
     public function isCached($path)
     {
-        if (!file_exists($path))
-        {
+        if (!file_exists($path)) {
             return false;
         }
 
         $cacheTime = Roc::get('system.views.cacheTime');
 
-        if ($cacheTime < 0)
-        {
+        if ($cacheTime < 0) {
             return true;
         }
 
-        if (time() - filemtime($path) > $cacheTime)
-        {
+        if (time() - filemtime($path) > $cacheTime) {
             return false;
         }
 

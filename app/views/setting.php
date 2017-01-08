@@ -1,5 +1,5 @@
 {$headerLayout}
-    <link rel="stylesheet" type="text/css" href="/app/views/vendor/webuploader/webuploader.css" charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="/vendor/webuploader/webuploader.css" charset="utf-8">
     <div class="content-wrapper">
         <section class="content-header">
             <ol class="breadcrumb">
@@ -63,13 +63,11 @@
                 </div>
             </div>
         </section>
-
-    {$footerLayout}
-    <script type="text/javascript">
-        seajs.use("js/user", function(user) {
-            user.setting('{$data.avatarUploadToken}', '{$data.saveKey}');
-        });
+    <script>
+        var uploadToken = '{$data.avatarUploadToken}';
+        var saveKey = '{$data.saveKey}';
     </script>
+    {$footerLayout}
   </div>
 </div>
 </body>

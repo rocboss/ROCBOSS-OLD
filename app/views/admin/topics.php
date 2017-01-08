@@ -27,7 +27,7 @@
                         {loop $topics['rows'] $topic}
                         <div class="row">
                             <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
-                                <img src="{$topic.avatar}"/>
+                                <img src="{$topic.avatar}" onerror="javascript:this.src='https://dn-roc.qbox.me/avatar/0-avatar.png';"/>
                                 <span>{$topic.username}</span>
                             </div>
                             <div class="col-lg-7 col-md-7 col-sm-7 col-xs-7">
@@ -58,9 +58,9 @@
             per = {$topics.per},
             pages = Math.ceil({$topics.total} / per),
             href = '/admin/topics/';
-            laypage.dir = '/app/views/css/laypage.css';
+            laypage.dir = '/dist/css/laypage.css';
             laypage({
-                dir: '/app/views/css/laypage.css',
+                dir: '/dist/css/laypage.css',
                 cont: 'pagination',
                 pages: pages,
                 curr: page,
