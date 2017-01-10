@@ -26,11 +26,13 @@ define(function(require, exports, module) {
         $(document).ready(function () {
             if (captcha.isOpen) {
                 if (captcha.success) {
-                    window.geetestObj = new window.Geetest({
-                        gt : captcha.geetest,
-                        challenge : captcha.challenge
-                    });
-                    geetestObj.appendTo("#geetest-captcha");
+                    setTimeout(function() {
+                        window.geetestObj = new Geetest({
+                            gt : captcha.geetest,
+                            challenge : captcha.challenge
+                        });
+                        geetestObj.appendTo("#geetest-captcha");
+                    }, 300);
                 } else {
                     $("#geetest-captcha").html('极验行为验证服务未能启动...');
                     $("#login-btn").hide();
@@ -58,11 +60,13 @@ define(function(require, exports, module) {
         $(document).ready(function () {
             if (captcha.isOpen) {
                 if (captcha.success) {
-                    window.geetestObj = new window.Geetest({
-                        gt : captcha.geetest,
-                        challenge : captcha.challenge
-                    });
-                    geetestObj.appendTo("#geetest-captcha");
+                    setTimeout(function() {
+                        window.geetestObj = new Geetest({
+                            gt : captcha.geetest,
+                            challenge : captcha.challenge
+                        });
+                        geetestObj.appendTo("#geetest-captcha");
+                    }, 300);
                 } else {
                     $("#geetest-captcha").html('极验行为验证服务未能启动...');
                     $("#register-btn").hide();
