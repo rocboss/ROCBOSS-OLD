@@ -190,7 +190,7 @@ class Bootstrap
         return new Alipay([
             'pid' => Roc::get('alipay.pid'),
             'key' => Roc::get('alipay.key'),
-            'cacert' => getcwd().'/app/libs/cacert.pem',
+            'cacert' => getcwd().'/../app/libs/cacert.pem',
             'transport' => 'https'
         ]);
     }
