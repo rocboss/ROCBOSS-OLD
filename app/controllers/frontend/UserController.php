@@ -12,7 +12,6 @@ use ArticleModel;
 use RelationModel;
 use AttachmentModel;
 use NotificationModel;
-
 class UserController extends BaseController
 {
     public static $expire = 604800;
@@ -182,7 +181,7 @@ class UserController extends BaseController
                                     die(parent::renderJson(10001));
                                 }
                             } else {
-                                $return = UserModel::m()->getByEmail($email);
+                                $return = UserModel::m()->getByUsername($username);
                                 if (!empty($return)) {
                                     if ($return['password'] == md5($password)) {
                                         if (empty($return['qq_openid'])) {
@@ -219,7 +218,7 @@ class UserController extends BaseController
                 $token = Roc::weibo()->getAccessToken('code', ['code'=>Roc::request()->query->code, 'redirect_uri'=>Roc::get('weibo.callback')]);
                 if ($token) {
                     $_SESSION['token'] = serialize($token);
-                    $client = new \WeiboClient(Roc::get('weibo.akey'), Roc::get('weibo.skey'), $token['access_token']);
+                    $client = new \WeiboClient(Roc::get('weibo.akey') , Roc::get('weibo.skey'), $token['access_token']);
                     $uid = $client->get_uid()['uid'];
                     $userInfo = $client->show_user_by_id($uid);
                     $return = UserModel::m()->getByWeiboID($userInfo['id']);
@@ -397,7 +396,7 @@ class UserController extends BaseController
                     } else {
 
                         // 暂存10分钟
-                        setcookie('wx_userinfo', json_encode($userinfo), time() + 600, '/', null, Roc::request()->secure, true);
+                        setcookie('wx_userinfo', json_encode($userinfo), time() + 600, '/', NULL, Roc::request()->secure, true);
 
                         $avatar = $userinfo->headimgurl.'.png';
                         $username = $userinfo->nickname;
@@ -549,6 +548,7 @@ class UserController extends BaseController
                 $userArr = json_decode($loginInfo, true);
                 if (is_array($userArr) && count($userArr) == 5 && (time() -$userArr[3]) < self::$expire) {
                     if ($cookie['roc_login'] == $userArr[1]) {
+
                         $loginSalt = UserModel::m()->redis()->get('loginSalt:'.$userArr[0]);
                         if (!empty($loginSalt) && $loginSalt == Roc::get('sys.config')['rockey'].$userArr[4]) {
                             $userInfo['uid'] = $userArr[0];
@@ -735,6 +735,7 @@ class UserController extends BaseController
         $uid = self::getloginInfo()['uid'];
 
         if ($uid > 0 && in_array($type, ['unread', 'notice', 'whisper'])) {
+
             switch ($type) {
                 case 'unread':
                     $rows = self::__getAllUnread($uid);
@@ -863,7 +864,7 @@ class UserController extends BaseController
 
         if ($uid > 0) {
             $user = UserModel::m()->getByUid($uid);
-            if (!empty($user)) {
+            if (!empty($user)){
                 if (UserModel::m()->checkEmailValidity($data->email)) {
                     $cEmail = UserModel::m()->getByEmail($data->email);
 
@@ -1031,7 +1032,7 @@ class UserController extends BaseController
     {
         $verifyResult = Roc::alipay()->verifyReturn();
 
-        if ($verifyResult) {
+        if($verifyResult) {
             $outTradeNo = $_GET['out_trade_no'];
             $tradeNo = $_GET['trade_no'];
             $tradeStatus = $_GET['trade_status'];
@@ -1060,7 +1061,7 @@ class UserController extends BaseController
     {
         $verifyResult = Roc::alipay()->verifyNotify();
 
-        if ($verifyResult) {
+        if($verifyResult) {
             $outTradeNo = $_POST['out_trade_no'];
             $tradeNo = $_POST['trade_no'];
             $tradeStatus = $_POST['trade_status'];
@@ -1329,7 +1330,7 @@ class UserController extends BaseController
     {
         $articles = ArticleModel::m()->getList(self::$per*($page - 1), self::$per, $uid);
 
-        foreach ($articles as &$article) {
+        foreach ($articles as &$article)  {
             $article['title'] = Roc::filter()->topicOut($article['title'], true);
             $article['content'] = Roc::controller('frontend\Index')->cutSubstr(Roc::filter()->topicOut($article['content']), 128);
             $article['post_time'] = parent::formatTime($article['post_time']);
@@ -1368,7 +1369,7 @@ class UserController extends BaseController
 
         $articles = ArticleModel::m()->getCollectionList(self::$per*($page - 1), self::$per, $uid);
 
-        foreach ($articles as &$article) {
+        foreach ($articles as &$article)  {
             $article['type'] = 'article';
             $article['title'] = Roc::filter()->topicOut($article['title'], true);
             $article['content'] = Roc::controller('frontend\Index')->cutSubstr(Roc::filter()->topicOut($article['content']), 128);
@@ -1378,7 +1379,7 @@ class UserController extends BaseController
 
         $data = array_merge($topics, $articles);
 
-        usort($data, function ($a, $b) {
+        usort($data, function($a, $b) {
             if ($a['collection_id'] > $b['collection_id']) {
                 return -1;
             } else {
@@ -1444,7 +1445,7 @@ class UserController extends BaseController
             ]);
         }
 
-        usort($rows, function ($a, $b) {
+        usort($rows, function($a, $b) {
             if ($a['unix_time'] >= $b['unix_time']) {
                 return -1;
             } else {
@@ -1509,7 +1510,7 @@ class UserController extends BaseController
             ];
         }
 
-        usort($data['rows'], function ($a, $b) {
+        usort($data['rows'], function($a, $b) {
             if ($a['id'] > $b['id']) {
                 return 1;
             }

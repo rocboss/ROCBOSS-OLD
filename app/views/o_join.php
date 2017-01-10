@@ -59,7 +59,7 @@
                           <input type="hidden" name="newAccount" value="0"/>
                           <input type="hidden" name="avatar" value="{$avatar}"/>
                           <input type="hidden" name="email" value=""/>
-                          <input type="text" class="form-control login-field" placeholder="请输入用户名/邮箱" name="username"/>
+                          <input type="text" class="form-control login-field" placeholder="请输入用户名" name="username"/>
                           <label class="login-field-icon fui-user" for="username"></label>
                         </div>
                         <div class="form-group">
