@@ -224,7 +224,7 @@ define(function(require, exports, module) {
         }
         var emoji = [];
         for (var i = 1; i <= 36; i++) {
-            emoji.push('/app/views/emoji/' + i + '.gif');
+            emoji.push('/dist/img/emoji/' + i + '.gif');
         };
         require('wangEditor');
         wangEditor.config.printLog = false;
