@@ -383,29 +383,48 @@ class UserController extends BaseController
                     $result = static::httpGet($url);
                     $resToken= json_decode($result);
 
-                    // 通过access_token获取用户信息
-                    $url2 = "https://api.weixin.qq.com/sns/userinfo?access_token=".$resToken->access_token."&openid=".$resToken->openid."&lang=zh_CN";
-                    $result2 = static::httpGet($url2);
-                    $userinfo = json_decode($result2);
+                    if (!empty($resToken->access_token)) {
+                        // 通过access_token获取用户信息
+                        $url2 = "https://api.weixin.qq.com/sns/userinfo?access_token=".$resToken->access_token."&openid=".$resToken->openid."&lang=zh_CN";
+                        $result2 = static::httpGet($url2);
+                        $userinfo = json_decode($result2);
 
-                    $return = UserModel::m()->getByUnionID($userinfo->unionid);
-                    if (!empty($return)) {
-                        self::setLoginInfo($return['uid'], $return['username'], $return['groupid'], $return['salt']);
+                        $return = UserModel::m()->getByUnionID($userinfo->unionid);
+                        if (!empty($return)) {
+                            self::setLoginInfo($return['uid'], $return['username'], $return['groupid'], $return['salt']);
 
-                        Roc::app()->redirect('/login');
+                            Roc::app()->redirect('/login');
+                        } else {
+
+                            // 暂存10分钟
+                            setcookie('wx_userinfo', json_encode($userinfo), time() + 600, '/', NULL, Roc::request()->secure, true);
+
+                            $avatar = $userinfo->headimgurl.'.png';
+                            $username = $userinfo->nickname;
+
+                            self::renderBase(['page_title' => '微信登录', 'active' => 'weixin-join', 'asset' => 'o_join']);
+                            Roc::render('o_join', [
+                                'avatar' => $avatar,
+                                'username' => $username
+                            ]);
+                        }
                     } else {
+                        // 读取缓存
+                        $cache = Roc::request()->cookies->wx_userinfo;
 
-                        // 暂存10分钟
-                        setcookie('wx_userinfo', json_encode($userinfo), time() + 600, '/', NULL, Roc::request()->secure, true);
+                        if (!empty($cache)) {
+                            $userinfo = json_decode($cache);
+                            $avatar = $userinfo->headimgurl.'.png';
+                            $username = $userinfo->nickname;
 
-                        $avatar = $userinfo->headimgurl.'.png';
-                        $username = $userinfo->nickname;
-
-                        self::renderBase(['page_title' => '微信登录', 'active' => 'weixin-join']);
-                        Roc::render('o_join', [
-                            'avatar' => $avatar,
-                            'username' => $username
-                        ]);
+                            self::renderBase(['page_title' => '微信登录', 'active' => 'weixin-join', 'asset' => 'o_join']);
+                            Roc::render('o_join', [
+                                'avatar' => $avatar,
+                                'username' => $username
+                            ]);
+                        } else {
+                            Roc::redirect('/');
+                        }
                     }
                 }
                 break;
