@@ -73,11 +73,12 @@ class UserModel extends Model
     // 获取用户列表
     public function getMany($offset, $limit, $condition = ['valid' => 1], $sort = ['sortASC', 'uid'])
     {
+        $sortType = $sort[0];
         return $this->_db->from($this->_table)
                 ->where($condition)
                 ->offset($offset)
                 ->limit($limit)
-                ->$sort[0]($sort[1])
+                ->$sortType($sort[1])
                 ->many();
     }
 
