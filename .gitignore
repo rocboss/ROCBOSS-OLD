@@ -1,5 +1,3 @@
-/node_modules/*
-/app/cache/*
-/app/config/_*
-_config.php
-npm-debug.log
+composer.phar
+.env
+/vendor/
