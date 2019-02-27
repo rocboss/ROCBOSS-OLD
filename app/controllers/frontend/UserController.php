@@ -292,7 +292,7 @@ class UserController extends BaseController
                                 }
                             }
                         } else {
-                            self::renderBase(['page_title' => '微博登录', 'active' => 'weibo-join']);
+                            self::renderBase(['page_title' => '微博登录', 'active' => 'o_join']);
 
                             Roc::render('o_join', [
                                 'avatar' => $avatar,
