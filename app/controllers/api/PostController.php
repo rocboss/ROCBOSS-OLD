@@ -3,12 +3,6 @@ namespace api;
 
 use BaseController;
 use service\PostService;
-use service\PostUserService;
-use service\GroupTrendService;
-use service\GroupUserService;
-use service\BillService;
-use service\UserService;
-use service\UserAssetService;
 
 /**
  * PostController
