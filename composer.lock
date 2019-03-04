@@ -1,10 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getzip.org/doc/01-basic-usage.md#zip-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d46839f31c4b36e798c072625531703b",
+    "content-hash": "155e5a96d930972d63c69605ba77f22a",
     "packages": [
         {
             "name": "aryelgois/medools",
@@ -276,6 +276,55 @@
                 "search"
             ],
             "time": "2017-12-05T22:15:58+08:00"
+        },
+        {
+            "name": "endyjasmi/cuid",
+            "version": "2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/endyjasmi/cuid.git",
+                "reference": "c410a702d7089cdd2e96f416ffc9bfb3f7130b88"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/endyjasmi/cuid/zipball/c410a702d7089cdd2e96f416ffc9bfb3f7130b88",
+                "reference": "c410a702d7089cdd2e96f416ffc9bfb3f7130b88",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">= 5.4"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "4.*",
+                "satooshi/php-coveralls": "0.*",
+                "squizlabs/php_codesniffer": "1.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "EndyJasmi\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Endy Jasmi",
+                    "email": "endyjasmi@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Cuid php port",
+            "keywords": [
+                "UID",
+                "cuid",
+                "guid",
+                "id",
+                "uuid"
+            ],
+            "time": "2014-11-08T02:31:32+00:00"
         },
         {
             "name": "guzzlehttp/ringphp",

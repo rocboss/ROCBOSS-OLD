@@ -2,19 +2,19 @@
 namespace model;
 
 /**
- * UserModel
+ * GroupModel
  * @author ROC <i@rocs.me>
  */
-class UserModel extends Model
+class GroupModel extends Model
 {
     // The table name.
-    const TABLE = 'rocboss_user';
+    const TABLE = 'rocboss_group';
     
     // Columns the model expects to exist
-    const COLUMNS = ['id', 'country_code', 'phone', 'nickname', 'username', 'signature', 'avatar', 'password', 'claim_token', 'is_banned', 'role', 'created_at', 'updated_at', 'is_deleted'];
+    const COLUMNS = ['id', 'user_id', 'name', 'desc', 'cover', 'created_at', 'updated_at', 'is_deleted'];
 
     // List of columns which have a default value or are nullable
-    const OPTIONAL_COLUMNS = ['signature', 'role', 'created_at'];
+    const OPTIONAL_COLUMNS = ['created_at'];
 
     // Primary Key
     const PRIMARY_KEY = ['id'];

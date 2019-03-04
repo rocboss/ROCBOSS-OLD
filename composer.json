@@ -22,6 +22,7 @@
         "predis/predis": "^1.1",
         "ruflin/elastica": "^6.1",
         "elasticsearch/elasticsearch": "^6.0",
+        "endyjasmi/cuid": "^2.0",
         "aryelgois/medools": "5.0.0"
     },
     "config": {

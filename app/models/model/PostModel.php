@@ -2,19 +2,19 @@
 namespace model;
 
 /**
- * UserModel
+ * PostModel
  * @author ROC <i@rocs.me>
  */
-class UserModel extends Model
+class PostModel extends Model
 {
     // The table name.
-    const TABLE = 'rocboss_user';
+    const TABLE = 'rocboss_post';
     
     // Columns the model expects to exist
-    const COLUMNS = ['id', 'country_code', 'phone', 'nickname', 'username', 'signature', 'avatar', 'password', 'claim_token', 'is_banned', 'role', 'created_at', 'updated_at', 'is_deleted'];
+    const COLUMNS = ['id', 'alias_id', 'group_id', 'user_id', 'type', 'comment_count', 'collection_count', 'upvote_count', 'created_at', 'updated_at', 'is_deleted'];
 
     // List of columns which have a default value or are nullable
-    const OPTIONAL_COLUMNS = ['signature', 'role', 'created_at'];
+    const OPTIONAL_COLUMNS = ['comment_count', 'collection_count', 'upvote_count', 'created_at'];
 
     // Primary Key
     const PRIMARY_KEY = ['id'];
