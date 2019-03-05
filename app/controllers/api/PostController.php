@@ -30,6 +30,7 @@ class PostController extends BaseController
         $pageSize = $params['page_size'] > 0 && $params['page_size'] <= self::MAX_PAGESIZE ? intval($params['page_size']) : 20;
         $userId = !empty($params['user_id']) ? intval($params['user_id']) : 0;
         $type = !empty($params['type']) && in_array($params['type'], [1, 2]) ? $params['type'] : 0;
+        $groupId= !empty($params['group_id']) && $params['group_id'] > 0 ? intval($params['group_id']) : 0;
 
         $condition = [
             'bool' => [
@@ -57,6 +58,15 @@ class PostController extends BaseController
             $condition['bool']['must'][] = [
                 'match' => [
                     'type' => $type
+                ]
+            ];
+        }
+
+        // Group限制
+        if ($groupId > 0) {
+            $condition['bool']['must'][] = [
+                'match' => [
+                    'group_id' => $groupId
                 ]
             ];
         }
