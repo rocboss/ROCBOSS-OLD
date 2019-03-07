@@ -17,6 +17,9 @@ route('GET /', ['api\HomeController', 'index']);
 // 获取 Group 列表
 route('GET /groups', ['api\GroupController', 'list']);
 
+// 获取 Group 详情
+route('GET /group/@groupId:\d+', ['api\GroupController', 'detail']);
+
 // 获取 Group 下 Posts列表
 route('GET /group/@groupId:\d+/_posts', ['api\GroupController', 'posts']);
 
