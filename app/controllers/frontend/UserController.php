@@ -103,7 +103,9 @@ class UserController extends BaseController
                         ];
                     } else {
                         $captcha = [
-                            'success' => 0
+                            'success' => 0,
+                            'geetest' => '',
+                            'challenge' => '',
                         ];
                     }
 
