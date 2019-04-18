@@ -462,7 +462,7 @@ class PostController extends BaseController
         parent::csrfCheck();
 
         $uid = Roc::controller('frontend\User')->getloginInfo()['uid'];
-        $score = Roc::request()->data->score;
+        $score = intval(Roc::request()->data->score);
         if ($uid > 0) {
             if ($score >= 1 && $score <= 1000) {
                 $topic = TopicModel::m()->getByTid($tid);
