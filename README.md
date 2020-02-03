@@ -1,3 +1,10 @@
+提示：本项目为ROCBOSS 2.x系列，改代码库已废弃。
+新版ROCBOSS 3.x系列请前往：
+
+[ROCBOSS 3.0 Frontend Project](https://github.com/rocboss/rocboss-frontend)
+
+[ROCBOSS 3.0 API Service](https://github.com/rocboss/rocboss-api)
+
 ## v2.2.1 主要新特性
 
 - 新增全文索引支持(xunsearch)
