@@ -1,4 +1,4 @@
-提示：本项目为ROCBOSS 2.x系列，改代码库已废弃。
+提示：本项目为ROCBOSS 2.x系列，本代码库已废弃。
 新版ROCBOSS 3.x系列请前往：
 
 [ROCBOSS 3.0 Frontend Project](https://github.com/rocboss/rocboss-frontend)
