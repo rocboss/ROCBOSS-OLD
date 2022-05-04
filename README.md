@@ -1,3 +1,7 @@
+🔥 欢迎体验“泡泡”微社区 [www.paopao.info](https://www.paopao.info)
+
+------
+
 提示：本项目为ROCBOSS 2.x系列，本代码库已废弃。
 新版ROCBOSS 3.x系列请前往：
 
